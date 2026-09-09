@@ -4,8 +4,7 @@ ieee_drafter.py
 Agent 6: Drafting & IEEE Formatting Agent.
 
 Drafts publication-ready IEEE conference-aligned paper sections,
-complete with bracketed citations [1], mathematical formulations,
-and BibTeX citation entries.
+bracketed citations [1], BibTeX entries, and full IEEEtran LaTeX source code.
 """
 
 from typing import Dict, Any, List
@@ -115,5 +114,66 @@ class IEEEDraftingAgent(BaseAgent):
                 ],
                 "bibtex_entries": "@inproceedings{lewis2020rag,\n  title={Retrieval-augmented generation for knowledge-intensive nlp tasks},\n  author={Lewis, Patrick and others},\n  booktitle={NeurIPS},\n  year={2020}\n}"
             }
+
+        # Generate LaTeX Overleaf source string automatically
+        sec = parsed.get("sections", {})
+        title = parsed.get("paper_title", topic)
+        abstract = parsed.get("abstract", "")
+        kws = ", ".join(parsed.get("keywords", []))
+        
+        latex_str = f"""\\documentclass[conference]{{IEEEtran}}
+\\usepackage{{cite}}
+\\usepackage{{amsmath,amssymb,amsfonts}}
+\\usepackage{{algorithmic}}
+\\usepackage{{graphicx}}
+\\usepackage{{textcomp}}
+\\usepackage{{xcolor}}
+
+\\begin{{document}}
+
+\\title{{{title}}}
+
+\\author{{\\IEEEauthorblockN{{Author Name}}
+\\IEEEauthorblockA{{\\textit{{Department of Computer Science}} \\\\
+\\textit{{University Name}}\\\\
+City, Country \\\\
+email@domain.com}}}}
+
+\\maketitle
+
+\\begin{{abstract}}
+{abstract}
+\\end{{abstract}}
+
+\\begin{{IEEEkeywords}}
+{kws}
+\\end{{IEEEkeywords}}
+
+\\section{{Introduction}}
+{sec.get('introduction', '')}
+
+\\section{{Related Work}}
+{sec.get('related_work', '')}
+
+\\section{{Methodology \\& System Architecture}}
+{sec.get('methodology', '')}
+
+\\section{{Experimental Results \\& Verification}}
+{sec.get('experiments_and_results', '')}
+
+\\section{{Discussion \\& Research Gaps}}
+{sec.get('discussion_and_gaps', '')}
+
+\\section{{Conclusion}}
+{sec.get('conclusion', '')}
+
+\\begin{{thebibliography}}{{00}}
+"""
+        for idx, ref in enumerate(parsed.get("ieee_references", [])):
+            clean_ref = ref.split("]", 1)[-1].strip() if "]" in ref else ref
+            latex_str += f"\\bibitem{{ref{idx+1}}} {clean_ref}\n"
+
+        latex_str += "\\end{thebibliography}\n\\end{document}"
+        parsed["latex_source"] = latex_str
 
         return parsed
