@@ -1,0 +1,31 @@
+﻿# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.local
+.env.*
+!.env.example
+
+# Vector Database & Data Cache
+vector_db/
+*.sqlite3
+chroma.sqlite3
+
+# Uploaded Files (ignore uploaded PDFs except .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
