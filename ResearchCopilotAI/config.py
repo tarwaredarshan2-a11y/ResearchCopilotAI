@@ -126,5 +126,4 @@ IEEE_SECTIONS = [
 # APP UI BRANDING
 # --------------------------------------------------------------------------
 APP_TITLE = "Research Paper Co-Pilot"
-APP_SUBTITLE = "6-Agent Verifiable Multimodal Research Assistant & IEEE Paper Synthesizer"
 APP_ICON = "🔬"

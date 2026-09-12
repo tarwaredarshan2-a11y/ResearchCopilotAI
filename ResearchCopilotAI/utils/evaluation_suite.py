@@ -6,14 +6,10 @@ Academic Benchmarking & Evaluation Suite for Research Paper Co-Pilot.
 Implements quantitative evaluation metrics:
 - Precision@K & MRR for retrieval accuracy
 - Faithfulness / Grounding Score
-- Hallucination Reduction Rate
-- Ablation Study Comparative Analysis
+- Hallucination Rate
 """
 
-import time
-from typing import Dict, Any, List, Optional
-import pandas as pd
-from utils.hybrid_retriever import hybrid_retriever
+from typing import Dict, Any, List
 
 class EvaluationSuite:
     """Calculates retrieval, verification, and grounding benchmarks."""
@@ -69,54 +65,5 @@ class EvaluationSuite:
             "average_confidence": round(avg_conf, 4),
             "total_claims": total
         }
-
-    @staticmethod
-    def run_ablation_benchmark() -> pd.DataFrame:
-        """
-        Runs or outputs standardized ablation comparison across system variants.
-        """
-        data = [
-            {
-                "Configuration": "1. Naive Dense RAG (BGE-small)",
-                "Precision@5": 0.684,
-                "MRR": 0.712,
-                "Faithfulness (%)": 71.3,
-                "Hallucination Rate (%)": 28.7,
-                "Avg Latency (s)": 1.25
-            },
-            {
-                "Configuration": "2. BM25 Sparse Search Only",
-                "Precision@5": 0.612,
-                "MRR": 0.640,
-                "Faithfulness (%)": 66.8,
-                "Hallucination Rate (%)": 33.2,
-                "Avg Latency (s)": 0.42
-            },
-            {
-                "Configuration": "3. Hybrid RAG (Dense + BM25)",
-                "Precision@5": 0.825,
-                "MRR": 0.856,
-                "Faithfulness (%)": 82.1,
-                "Hallucination Rate (%)": 17.9,
-                "Avg Latency (s)": 1.48
-            },
-            {
-                "Configuration": "4. Hybrid + Citation Grounding (Agents 1-3)",
-                "Precision@5": 0.880,
-                "MRR": 0.892,
-                "Faithfulness (%)": 89.4,
-                "Hallucination Rate (%)": 10.6,
-                "Avg Latency (s)": 2.65
-            },
-            {
-                "Configuration": "5. Full 6-Agent System (+ NLI & IEEE Drafter)",
-                "Precision@5": 0.942,
-                "MRR": 0.958,
-                "Faithfulness (%)": 95.7,
-                "Hallucination Rate (%)": 4.3,
-                "Avg Latency (s)": 4.80
-            }
-        ]
-        return pd.DataFrame(data)
 
 evaluation_suite = EvaluationSuite()
