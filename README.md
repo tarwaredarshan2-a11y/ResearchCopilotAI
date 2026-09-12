@@ -1,31 +1,31 @@
 # 🔬 Research Paper Co-Pilot AI
 
-**A Verifiable Multi-Agent Framework for Scientific Literature Synthesis & IEEE Conference Manuscript Generation**
+> **Human-in-the-loop framework for evidence-grounded multi-paper literature analysis and IEEE-structured draft generation.**
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?style=flat&logo=python&logoColor=white)](https://python.org)
 [![Streamlit 1.36+](https://img.shields.io/badge/Streamlit-1.36%2B-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-VectorStore-000000.svg?style=flat)](https://trychroma.com)
 [![LangChain](https://img.shields.io/badge/LangChain-Orchestration-1C3C3C.svg?style=flat)](https://langchain.com)
-[![IEEE Format Aligned](https://img.shields.io/badge/IEEE-Author_Center_Compliant-006699.svg?style=flat)](https://conferences.ieeeauthorcenter.ieee.org/)
+[![IEEE Structure Aligned](https://img.shields.io/badge/IEEE-Structure_Aligned-006699.svg?style=flat)](https://conferences.ieeeauthorcenter.ieee.org/)
 
 ---
 
-## 📌 1. Project Overview & Academic Purpose
+## 📌 1. Project Overview & Academic Scope
 
-**Research Paper Co-Pilot AI** is an autonomous scientific research assistant and publication synthesizer developed for 5th-semester engineering capstone evaluation and IEEE conference manuscript submissions. 
+**Research Paper Co-Pilot AI** is a human-in-the-loop research assistant and publication helper developed for 5th-semester engineering capstone evaluation and academic literature analysis.
 
-The platform transforms raw academic PDF documents into structured, grounded scientific knowledge. It addresses the key limitations of standard LLM summarizers—specifically ungrounded hallucinations, vague citation attribution, and lack of quantitative precision—by combining **layout-aware multimodal parsing**, **hybrid dense-sparse retrieval (Dense ChromaDB + Lexical BM25)**, **verified page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
+The system assists researchers in ingesting, comparing, and synthesizing academic PDF documents. It addresses key challenges in automated literature review—such as ungrounded statements, vague citation attributions, and manual synthesis bottlenecks—by combining **layout-aware PDF text and metadata extraction**, **hybrid dense-sparse retrieval (Dense ChromaDB + Custom Lexical BM25)**, **page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
 
 ---
 
-## ✨ 2. Key Verifiable Features
+## ✨ 2. Key Functional Features
 
-- **💬 Grounded AI Research Assistant**: Multi-turn continuous chat engine that answers questions strictly using retrieved paper passages with bracketed page-level citations (`[PaperName, p.X]`).
+- **💬 Grounded AI Research Assistant**: Multi-turn continuous chat engine that answers questions using retrieved paper passages with bracketed page-level citations (`[PaperName, p.X]`).
 - **🔍 Document Analysis Teardown**: Extracts structured academic breakdowns (Abstract, Problem Statement, Methodology, Empirical Datasets, Key Findings, Limitations).
 - **⚡ Cross-Paper & Intra-Paper Conflict Detector**: Identifies empirical contradictions, conflicting methodological assumptions, and internal trade-offs across single or multiple papers.
-- **📐 Quantitative Setup & Formula Extractor**: Extracts equations, converts plain text formulas into formatted $\LaTeX$ equations, and parses hardware sensor parameters, sampling frequencies, and dataset metrics.
-- **🧭 Literature Review & Research Gap Matrix**: Generates comparative literature review tables (`Paper | Methodology | Dataset | Key Results`) and detects unresolved research trajectories.
-- **✍️ IEEE Manuscript & Overleaf LaTeX Studio**: Synthesizes camera-ready IEEE conference drafts and copy-pasteable **IEEEtran Overleaf LaTeX (`.tex`)** source code.
+- **📐 Quantitative Setup & Formula Extractor**: Extracts mathematical formulations, converts plain text equations into formatted $\LaTeX$ blocks, and parses hardware sensor parameters, sampling frequencies, and dataset metrics.
+- **🧭 Literature Review & Research Gap Matrix**: Generates comparative literature review tables (`Paper | Methodology | Dataset | Key Results`) and identifies open research trajectories.
+- **✍️ IEEE Manuscript & Overleaf LaTeX Studio**: Synthesizes structured IEEE conference draft sections and ready-to-compile **IEEEtran Overleaf LaTeX (`.tex`)** source code.
 - **🗑️ Permanent Paper Storage Manager**: Allows users to select and permanently delete uploaded PDFs from disk storage and the Chroma vector database.
 
 ---
@@ -44,7 +44,7 @@ The platform transforms raw academic PDF documents into structured, grounded sci
                                              ▼
                      ┌───────────────────────────────────────────────┐
                      │     Agent 2: Literature Retrieval Agent       │
-                     │  (Hybrid Dense ChromaDB + BM25 Lexical RRF)   │
+                     │  (Hybrid BGE-small + Custom BM25 RRF)         │
                      └───────────────────────┬───────────────────────┘
                                              │
                                              ▼
@@ -55,8 +55,8 @@ The platform transforms raw academic PDF documents into structured, grounded sci
                                              │
                                              ▼
                      ┌───────────────────────────────────────────────┐
-                     │    Agent 4: Claim-Level Verification Agent    │
-                     │  (NLI-based Entailment vs Contradiction)      │
+                     │    Agent 4: LLM-Assisted Claim Verifier       │
+                     │  (Premise-Hypothesis Entailment Check)        │
                      └───────────────────────┬───────────────────────┘
                                              │
                                              ▼
@@ -74,18 +74,18 @@ The platform transforms raw academic PDF documents into structured, grounded sci
 
 ### Agent Roles & Specifications:
 1. **Agent 1: Query Decomposer (`query_decomposer.py`)**: Deconstructs high-level queries into specific sub-questions and keyword search facets.
-2. **Agent 2: Hybrid Literature Retriever (`lit_retriever.py`)**: Executes dense vector similarity search (ChromaDB) and sparse lexical search (BM25) with Reciprocal Rank Fusion.
+2. **Agent 2: Hybrid Literature Retriever (`lit_retriever.py`)**: Executes dense vector similarity search (`BAAI/bge-small-en-v1.5`) and custom sparse lexical search (BM25) with Reciprocal Rank Fusion.
 3. **Agent 3: Evidence & Citation Verifier (`citation_verifier.py`)**: Binds generated statements to exact page-level text snippets and document provenance.
-4. **Agent 4: Claim-Level Verifier (`claim_verifier.py`)**: Verifies candidate assertions against literature premises, categorizing claims into `ENTAILED`, `NEUTRAL`, or `CONTRADICTED`.
+4. **Agent 4: LLM-Assisted Claim Verifier (`claim_verifier.py`)**: Verifies candidate assertions against retrieved literature premises, categorizing claims into `ENTAILED`, `NEUTRAL`, or `CONTRADICTED`.
 5. **Agent 5: Research-Gap Synthesizer (`gap_synthesizer.py`)**: Discovers methodological blindspots, missing evaluation benchmarks, and open research directions.
 6. **Agent 6: IEEE Section & LaTeX Drafter (`ieee_drafter.py`)**: Formats syntheses into standardized IEEE conference paper sections, bracketed citations `[1]`, BibTeX entries, and Overleaf `.tex` source code.
 
 ---
 
-## 🧮 4. Mathematical Formulation & Technical Implementation
+## 🧮 4. Mathematical Formulation & Technical Specifications
 
 ### A. Hybrid Reciprocal Rank Fusion (RRF)
-For a document passage $d \in D$, the hybrid score $S_{\text{RRF}}(d)$ combining dense vector ranking $r_{\text{dense}}(d)$ and sparse BM25 ranking $r_{\text{sparse}}(d)$ is calculated as:
+For a document passage $d \in D$, the hybrid score $S_{\text{RRF}}(d)$ combining dense vector ranking $r_{\text{dense}}(d)$ and custom sparse BM25 ranking $r_{\text{sparse}}(d)$ is calculated as:
 $$S_{\text{RRF}}(d) = w_{\text{dense}} \cdot \frac{1}{k + r_{\text{dense}}(d)} + w_{\text{sparse}} \cdot \frac{1}{k + r_{\text{sparse}}(d)}$$
 
 Where:
@@ -94,55 +94,67 @@ Where:
 - $w_{\text{sparse}} = 0.35$ (Sparse lexical BM25 weight)
 
 ### B. Balanced Passage Sampling
-To prevent a long document from dominating LLM context windows during multi-paper comparison, passages are sampled evenly across three document regions:
+To prevent a single long document from dominating LLM context windows during multi-paper comparison, passages are sampled evenly across three document regions:
 - **Beginning**: Abstract & Introduction ($0\% - 30\%$)
 - **Middle**: Methodology & System Design ($30\% - 70\%$)
 - **End**: Experimental Results & Discussion ($70\% - 100\%$)
 
 ---
 
-## 🛠️ 5. Technology Stack & Dependencies
+## 🔬 5. Planned Evaluation Methodology
 
-| Layer | Component / Library | Purpose |
-| :--- | :--- | :--- |
-| **Frontend / UI** | Streamlit (`>= 1.36.0`) | Responsive light-mode dashboard with periwinkle theme |
-| **LLM Engine** | Google Gemini API (`gemini-1.5-flash` / `pro`) | Reasoning, claim verification, and LaTeX generation |
-| **Vector Database** | ChromaDB (`langchain-chroma`) | Persistent vector storage for document embeddings |
-| **Embeddings** | HuggingFace (`all-MiniLM-L6-v2`) | Local CPU sentence embeddings |
-| **Sparse Retrieval** | `rank_bm25` | Lexical keyword search |
-| **PDF Extraction** | `pdfplumber`, `PyPDF2`, `fitz` | Text, page metadata, and layout parsing |
-| **Evaluation Suite** | Python ROUGE / BLEU / Precision Metrics | Internal pipeline performance verification |
+> **Note:** Evaluation experiments are planned using manually annotated research-paper queries and evidence passages.
+
+The evaluation workflow will measure:
+- **Retrieval Quality**: Precision@5, Recall@5, Mean Reciprocal Rank (MRR)
+- **Factuality & Citation Grounding**: Citation correctness rate, claim entailment accuracy, unsupported-claim rate
+- **System Performance**: Average query latency (seconds)
+
+### Baseline Comparison Strategy:
+1. Dense Retrieval Only (`BAAI/bge-small-en-v1.5`)
+2. Sparse Lexical Retrieval Only (Custom BM25)
+3. Hybrid Retrieval (Dense + BM25 RRF)
+4. Hybrid Retrieval + Citation Grounding (Agents 1–3)
+5. Full 6-Agent Pipeline (Agents 1–6)
 
 ---
 
-## 🚀 6. Installation & Execution Guide
+## 🛠️ 6. System Reproducibility & Exact Configuration
 
-### Prerequisites
-- Python 3.10 or higher
-- PowerShell / Terminal
-- Google Gemini API Key
+| Parameter | Configuration Value | Location |
+| :--- | :--- | :--- |
+| **Python Version** | `Python >= 3.10` | Environment |
+| **UI Framework** | `Streamlit >= 1.36.0` | `app.py` |
+| **LLM Model** | `gemini-2.5-flash` | `config.py` |
+| **Embedding Model** | `BAAI/bge-small-en-v1.5` | `config.py` |
+| **PDF Parser** | `PyMuPDF` (`fitz`), `pdfplumber`, `PyPDF2` | `utils/multimodal_parser.py` |
+| **Vector Database** | ChromaDB (`langchain-chroma`) | `utils/embeddings.py` |
+| **Chunk Size & Overlap** | $900$ characters / $150$ character overlap | `config.py` |
+| **RRF Weights** | $w_{\text{dense}} = 0.65$, $w_{\text{sparse}} = 0.35$, $k = 60$ | `config.py` |
 
-### Step 1: Clone & Navigate to Project Directory
+---
+
+## 🚀 7. Installation & Setup Guide
+
+### Step 1: Navigate to Project Directory
 ```powershell
 cd "ResearchCopilotAI"
 ```
 
-### Step 2: Set Up Virtual Environment & Install Dependencies
+### Step 2: Create Environment & Install Dependencies
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-### Step 3: Configure Environment Variables
-Create a `.env` file inside the `ResearchCopilotAI/` folder:
+### Step 3: Configure Gemini API Key
+Create a `.env` file inside `ResearchCopilotAI/`:
 ```env
 GOOGLE_API_KEY=your_gemini_api_key_here
-# Optional: Multi-key fallback pool
-GOOGLE_API_KEYS=key1,key2,key3
 ```
 
-### Step 4: Launch the Streamlit Application
+### Step 4: Run the Streamlit Application
 ```powershell
 .\venv\Scripts\python.exe -m streamlit run app.py
 ```
@@ -150,21 +162,17 @@ Open **`http://localhost:8501`** in your browser.
 
 ---
 
-## 📄 7. IEEE Author Center Guidelines Compliance
+## ⚠️ 8. System Limitations & Human-in-the-Loop Scope
 
-All drafted IEEE manuscripts strictly conform to **[IEEE Author Center Conference Standards](https://conferences.ieeeauthorcenter.ieee.org/)**:
-- **Title & Abstract**: Problem-Method-Result format with index terms.
-- **Section I. Introduction**: Contextual background, problem statement, and enumerated contributions.
-- **Section II. Related Work & Comparative Taxonomy**: Grounded review with bracketed citations `[1]`, `[2]`.
-- **Section III. System Architecture & Methodology**: Pipeline design and mathematical formulations.
-- **Section IV. Experimental Results**: Quantitative evaluation and benchmark comparison.
-- **Section V. Discussion & Research Gaps**: Limitations and future directions.
-- **Section VI. Conclusion**: Summary of contributions and closing remarks.
-- **BibTeX & Overleaf Code**: Standard `.bib` entries and ready-to-compile `.tex` markup.
+- **Scanned PDFs**: Poorly scanned or low-resolution PDFs may have incomplete text extraction.
+- **Complex Equations & Figures**: Multi-column inline equations and embedded figure diagrams require human review.
+- **Probabilistic Verification**: LLM-assisted claim verification is probabilistic; generated citations must be verified against primary source documents.
+- **Human Editing Required**: Generated IEEE drafts serve as preliminary literature reviews and require human editing prior to conference submission.
+- **Publication Guarantee**: System outputs do not guarantee IEEE conference acceptance.
 
 ---
 
-## 📁 8. Directory Structure
+## 📁 9. Directory Structure
 
 ```
 ResearchCopilotAI/
@@ -179,9 +187,9 @@ ResearchCopilotAI/
     ├── __init__.py
     ├── pdf_loader.py            # PDF storage helper
     ├── multimodal_parser.py     # Layout-aware PDF text parser & chunker
-    ├── embeddings.py            # HuggingFace & ChromaDB interface
+    ├── embeddings.py            # HuggingFace BGE & ChromaDB interface
     ├── retriever.py             # Ordered chunk retrieval & balanced sampling
-    ├── hybrid_retriever.py      # Dense + BM25 + RRF Hybrid Retriever
+    ├── hybrid_retriever.py      # Dense + Custom BM25 + RRF Hybrid Retriever
     ├── llm.py                   # Multi-key Gemini API failover pool
     ├── paper_analysis.py        # Single & multi-paper document teardown
     ├── conflict_detector.py     # Cross-paper contradiction & risk detector
@@ -195,14 +203,14 @@ ResearchCopilotAI/
         ├── query_decomposer.py  # Agent 1: Query Decomposition
         ├── lit_retriever.py     # Agent 2: Literature Retrieval
         ├── citation_verifier.py # Agent 3: Citation Grounding
-        ├── claim_verifier.py    # Agent 4: Claim-Level Verification
+        ├── claim_verifier.py    # Agent 4: LLM Claim Verification
         ├── gap_synthesizer.py   # Agent 5: Research Gap Synthesis
-        └── ieee_drafter.py      # Agent 6: IEEE Manuscript & LaTeX Drafter
+        └── ieee_drafter.py      # Agent 6: IEEE Section & LaTeX Drafter
 ```
 
 ---
 
-## 📜 9. License & Academic Attribution
+## 📜 10. License & Academic Attribution
 
 Developed for **5th Semester Engineering Capstone Project** and **IEEE Conference Publication Synthesis**.
 © 2026 Research Co-Pilot AI • All Rights Reserved.

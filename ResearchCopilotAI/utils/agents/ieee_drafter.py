@@ -1,4 +1,4 @@
-﻿"""
+"""
 ieee_drafter.py
 ---------------
 Agent 6: Drafting & IEEE Formatting Agent.
@@ -98,15 +98,15 @@ class IEEEDraftingAgent(BaseAgent):
         if "sections" not in parsed:
             parsed = {
                 "paper_title": f"A Verifiable Multi-Agent Framework for Scientific Literature Synthesis: {topic}",
-                "abstract": f"In this paper, we propose a six-agent verifiable research assistant framework for {topic}. By coupling multimodal ingestion with hybrid dense-sparse retrieval and natural language inference claim verification, our system reduces hallucination rates while accelerating academic literature review and gap discovery.",
+                "abstract": f"This paper presents a six-agent human-in-the-loop research assistant framework for {topic}. By coupling layout-aware PDF extraction with hybrid dense-sparse retrieval and LLM-assisted claim verification, the system assists researchers in comparative literature analysis and preliminary IEEE manuscript drafting.",
                 "keywords": ["Retrieval-Augmented Generation", "Multi-Agent Systems", "Claim Verification", "IEEE Guidelines"],
                 "sections": {
-                    "introduction": f"Comprehensive literature synthesis remains a bottleneck in contemporary computer science research. Addressing {topic}, this study presents a verifiable multi-agent framework...",
-                    "related_work": "Recent advances in dense vector retrieval and large language models have transformed document question answering [1]. However, unstructured hallucination in academic synthesis persists [2]...",
-                    "methodology": "The proposed architecture incorporates a six-agent pipeline: Query Decomposition, Hybrid Literature Retrieval (Dense BGE + Sparse BM25), Citation Grounding, NLI Claim Verification, Gap Synthesis, and IEEE Drafting...",
-                    "experiments_and_results": "Empirical evaluation reveals that our claim-verified retrieval achieves a 94.2% faithfulness score, outperforming naive RAG baselines by 23.8% in grounding accuracy...",
-                    "discussion_and_gaps": "While our multi-agent framework significantly reduces hallucination, complex diagrammatic equation parsing in multi-column PDFs remains an open challenge...",
-                    "conclusion": "This paper presented a verified six-agent architecture for automated academic synthesis, meeting strict IEEE conference publication standards."
+                    "introduction": f"Comprehensive literature synthesis remains a critical task in computer science research. Addressing {topic}, this study presents an evidence-grounded multi-agent framework...",
+                    "related_work": "Recent advances in dense vector retrieval and large language models have transformed document question answering [1]. However, ungrounded outputs in automated academic synthesis persist [2]...",
+                    "methodology": "The proposed architecture incorporates a six-agent pipeline: Query Decomposition, Hybrid Literature Retrieval (Dense BGE + Sparse BM25), Citation Grounding, Claim Verification, Gap Synthesis, and IEEE Section Drafting...",
+                    "experiments_and_results": "This draft contains preliminary literature synthesis. Experimental evaluation is planned using annotated research queries and evidence passages to measure precision, retrieval MRR, and citation grounding accuracy against primary source documents...",
+                    "discussion_and_gaps": "While our multi-agent framework assists literature review, complex diagrammatic equation parsing in multi-column PDFs remains an open challenge requiring human verification...",
+                    "conclusion": "This paper presented a multi-agent framework for evidence-grounded literature synthesis and preliminary IEEE conference draft generation."
                 },
                 "ieee_references": [
                     "[1] J. Devlin et al., 'BERT: Pre-training of Deep Bidirectional Transformers', in NAACL-HLT, 2019.",
@@ -114,6 +114,7 @@ class IEEEDraftingAgent(BaseAgent):
                 ],
                 "bibtex_entries": "@inproceedings{lewis2020rag,\n  title={Retrieval-augmented generation for knowledge-intensive nlp tasks},\n  author={Lewis, Patrick and others},\n  booktitle={NeurIPS},\n  year={2020}\n}"
             }
+
 
         # Generate LaTeX Overleaf source string automatically
         sec = parsed.get("sections", {})
