@@ -12,21 +12,17 @@ Color Palette (Derived from User Specification):
 - #F5F7FC: Main Page Background (Modern Ultra-Clean Light Mode)
 """
 
-import os
 import streamlit as st
 import pandas as pd
-import json
 
 from config import (
-    APP_TITLE, APP_SUBTITLE, APP_ICON, GOOGLE_API_KEY,
-    RETRIEVER_TOP_K, HYBRID_DENSE_WEIGHT, HYBRID_SPARSE_WEIGHT
+    APP_TITLE, APP_ICON
 )
 from utils.pdf_loader import save_uploaded_pdf
 from utils.multimodal_parser import parse_multimodal_pdf, chunk_parsed_document
 from utils.embeddings import add_documents_to_vector_store, get_all_paper_names, delete_paper_from_vector_store
 from utils.hybrid_retriever import hybrid_retriever
 from utils.orchestrator import orchestrator
-from utils.evaluation_suite import evaluation_suite
 from utils.llm import generate_response
 from utils.paper_analysis import analyze_paper
 from utils.literature_review import generate_literature_review
