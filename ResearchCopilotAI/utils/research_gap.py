@@ -1,16 +1,16 @@
-﻿"""
+"""
 research_gap.py
 ----------------
 Detects research gaps across one or more uploaded papers: limitations,
 missing datasets, open problems, and suggested future work.
-Robust JSON and markdown parser.
+Robust JSON and markdown parser with balanced chunk sampling.
 """
 
 import json
 import re
 from typing import Dict, List, Any
 
-from utils.retriever import retrieve_all_chunks_for_paper, format_chunks_as_context
+from utils.retriever import retrieve_all_chunks_for_paper, sample_balanced_chunks, format_chunks_as_context
 from utils.llm import generate_response
 
 GAP_FIELDS = [
@@ -29,9 +29,9 @@ SYSTEM_PROMPT = (
 def _build_prompt(context: str, paper_names: List[str]) -> str:
     papers_list = ", ".join(paper_names)
     return (
-        f"Below is extracted content from {len(paper_names)} research paper(s): {papers_list}.\n\n"
-        f"--- CONTENT START ---\n{context[:12000]}\n--- CONTENT END ---\n\n"
-        "Critically analyze this content and extract:\n"
+        f"Below is extracted content from research paper(s): {papers_list}.\n\n"
+        f"--- CONTENT START ---\n{context[:14000]}\n--- CONTENT END ---\n\n"
+        f"Critically analyze {papers_list} and extract:\n"
         "1. 'Limitations': Bullet points of explicit/implicit limitations in these papers.\n"
         "2. 'Missing Datasets': Bullet points of missing, small, or underexplored datasets.\n"
         "3. 'Open Problems': Bullet points of unresolved research questions.\n"
@@ -60,7 +60,6 @@ def _robust_parse_json(raw_text: str) -> Dict[str, str]:
         json_str = candidate[start:end+1]
         try:
             parsed = json.loads(json_str)
-            # Case-insensitive key mapping
             parsed_lower = {k.lower().replace("_", "").replace(" ", ""): v for k, v in parsed.items()}
             result = {}
             for field in GAP_FIELDS:
@@ -89,15 +88,12 @@ def detect_research_gaps(paper_names: List[str]) -> Dict[str, str]:
     if not paper_names:
         raise ValueError("At least one paper must be selected for research gap detection.")
 
-    all_chunks = []
-    for name in paper_names:
-        all_chunks.extend(retrieve_all_chunks_for_paper(name))
+    all_chunks = sample_balanced_chunks(paper_names, max_chunks_per_paper=8)
 
     if not all_chunks:
         raise ValueError("No content found in vector store for the selected papers.")
 
     context = format_chunks_as_context(all_chunks)
     prompt = _build_prompt(context, paper_names)
-
     raw_response = generate_response(prompt=prompt, system_prompt=SYSTEM_PROMPT)
     return _robust_parse_json(raw_response)

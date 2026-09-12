@@ -1,4 +1,4 @@
-﻿"""
+"""
 retriever.py
 ------------
 Provides retrieval functions querying the Chroma vector store,
@@ -45,6 +45,28 @@ def retrieve_all_chunks_for_paper(paper_name: str) -> List[Document]:
         Document(page_content=doc, metadata=meta) for doc, meta in combined
     ]
 
+def sample_balanced_chunks(paper_names: List[str], max_chunks_per_paper: int = 10) -> List[Document]:
+    """
+    Retrieve an evenly distributed sample of chunks from each paper across
+    beginning (Abstract/Intro), middle (Methodology), and end (Results/Conclusion).
+    Prevents a single paper from dominating the context window.
+    """
+    sampled: List[Document] = []
+    for name in paper_names:
+        chunks = retrieve_all_chunks_for_paper(name)
+        if not chunks:
+            continue
+        if len(chunks) <= max_chunks_per_paper:
+            sampled.extend(chunks)
+        else:
+            # Sample evenly across the document
+            step = len(chunks) / float(max_chunks_per_paper)
+            indices = [int(i * step) for i in range(max_chunks_per_paper)]
+            for idx in indices:
+                if idx < len(chunks):
+                    sampled.append(chunks[idx])
+    return sampled
+
 def format_chunks_as_context(chunks: List[Document]) -> str:
     if not chunks:
         return ""
@@ -58,3 +80,4 @@ def format_chunks_as_context(chunks: List[Document]) -> str:
         )
 
     return "\n\n".join(formatted_sections)
+

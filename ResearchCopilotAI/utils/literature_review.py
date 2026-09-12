@@ -1,4 +1,4 @@
-﻿"""
+"""
 literature_review.py
 ---------------------
 Generates a literature review across one or more uploaded papers:
@@ -10,7 +10,7 @@ import json
 import re
 from typing import Dict, List, Any
 
-from utils.retriever import retrieve_all_chunks_for_paper, format_chunks_as_context
+from utils.retriever import retrieve_all_chunks_for_paper, sample_balanced_chunks, format_chunks_as_context
 from utils.llm import generate_response
 
 REVIEW_FIELDS = [
@@ -23,7 +23,7 @@ REVIEW_FIELDS = [
 
 SYSTEM_PROMPT = (
     "You are an expert academic researcher who writes rigorous, well "
-    "structured literature reviews comparing multiple papers. You always "
+    "structured literature reviews comparing research papers. You always "
     "respond with a valid JSON object."
 )
 
@@ -31,10 +31,10 @@ def _build_prompt(context: str, paper_names: List[str]) -> str:
     papers_list = ", ".join(paper_names)
     return (
         f"Below is extracted content from {len(paper_names)} research paper(s): {papers_list}.\n\n"
-        f"--- CONTENT START ---\n{context[:12000]}\n--- CONTENT END ---\n\n"
-        "Generate a structured literature review covering:\n"
+        f"--- CONTENT START ---\n{context[:14000]}\n--- CONTENT END ---\n\n"
+        f"Generate a structured literature review specifically focusing on: {papers_list}.\n"
         "1. 'Academic Summary': Cohesive academic synthesis (3-4 paragraphs).\n"
-        "2. 'Comparison Table': A markdown table comparing Paper, Methodology, Dataset, and Key Results.\n"
+        "2. 'Comparison Table': A markdown table comparing Paper Name, Methodology, Dataset, and Key Results.\n"
         "3. 'Research Trends': Bullet points describing common techniques and directions.\n"
         "4. 'Strengths': Bullet points of collective methodological strengths.\n"
         "5. 'Weaknesses': Bullet points of collective limitations.\n\n"
@@ -90,9 +90,7 @@ def generate_literature_review(paper_names: List[str]) -> Dict[str, str]:
     if not paper_names:
         raise ValueError("At least one paper must be selected for literature review.")
 
-    all_chunks = []
-    for name in paper_names:
-        all_chunks.extend(retrieve_all_chunks_for_paper(name))
+    all_chunks = sample_balanced_chunks(paper_names, max_chunks_per_paper=8)
 
     if not all_chunks:
         raise ValueError("No content found in vector store for the selected papers.")

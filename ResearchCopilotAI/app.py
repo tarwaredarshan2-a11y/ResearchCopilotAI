@@ -53,9 +53,9 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* Main Page Canvas Background - Soft Warm Crisp Light */
+    /* Main Page Canvas Background */
     .stApp {
-        background: linear-gradient(180deg, #EBF1FA 0%, #F5F7FC 400px, #F5F7FC 100%);
+        background: linear-gradient(180deg, #EBF1FA 0%, #F5F7FC 350px, #F5F7FC 100%);
         color: #302F38;
     }
     
@@ -72,14 +72,14 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* Organic Curved Hero Header Banner (Inspired by Reference Images 1 & 2) */
+    /* Organic Curved Hero Header Banner */
     .hero-banner-container {
         position: relative;
         background: linear-gradient(135deg, #2F3A6E 0%, #474E86 45%, #7174B9 100%);
         border-radius: 24px;
-        padding: 36px 42px 54px 42px;
+        padding: 32px 38px 48px 38px;
         color: #FFFFFF;
-        margin-bottom: -24px;
+        margin-bottom: 12px;
         box-shadow: 0 16px 36px rgba(47, 58, 110, 0.18);
         overflow: hidden;
     }
@@ -89,21 +89,21 @@ st.markdown("""
         bottom: -1px;
         left: 0;
         right: 0;
-        height: 36px;
+        height: 32px;
         background: #F5F7FC;
         clip-path: ellipse(55% 100% at 50% 100%);
     }
     .hero-banner-container h1 {
         color: #FFFFFF !important;
-        font-size: 32px;
+        font-size: 30px;
         font-weight: 800;
-        margin: 0 0 8px 0;
+        margin: 0 0 6px 0;
         letter-spacing: -0.025em;
         text-shadow: 0 2px 10px rgba(0,0,0,0.12);
     }
     .hero-banner-container p {
         color: #C0CDEC !important;
-        font-size: 15px;
+        font-size: 14.5px;
         margin: 0;
         font-weight: 500;
         max-width: 680px;
@@ -119,13 +119,12 @@ st.markdown("""
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.25);
         color: #FFFFFF;
-        padding: 6px 16px;
+        padding: 5px 15px;
         border-radius: 9999px;
-        font-size: 12.5px;
+        font-size: 12px;
         font-weight: 700;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         letter-spacing: 0.02em;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     /* Primary Cards & Container Panels */
@@ -153,7 +152,7 @@ st.markdown("""
         font-size: 14px;
         font-weight: 700;
         color: #2F3A6E;
-        margin-top: 10px;
+        margin-top: 8px;
         margin-bottom: 24px;
         display: flex;
         align-items: center;
@@ -186,27 +185,6 @@ st.markdown("""
         line-height: 1.65;
     }
 
-    /* Conversational Chat */
-    .chat-user {
-        background: linear-gradient(135deg, #E6EDF8 0%, #DCE5F5 100%);
-        border: 1px solid #ABC4E6;
-        border-radius: 18px 18px 4px 18px;
-        padding: 16px 20px;
-        margin-bottom: 14px;
-        color: #2F3A6E;
-        font-weight: 600;
-    }
-    .chat-assistant {
-        background-color: #FFFFFF;
-        border: 1px solid #ABC4E6;
-        border-radius: 18px 18px 18px 4px;
-        padding: 22px 26px;
-        margin-bottom: 20px;
-        color: #302F38;
-        line-height: 1.7;
-        box-shadow: 0 8px 24px rgba(47, 58, 110, 0.06);
-    }
-    
     /* Clean Badges & Chips */
     .badge-chip {
         display: inline-block;
@@ -231,45 +209,50 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* Streamlit Tab Customization - Modern Pill Navigation */
+    /* STREAMLIT TAB CUSTOMIZATION - FIXING OVERFLOW & UNALIGNED BARS */
+    div[data-baseweb="tab-list"] {
+        gap: 8px !important;
+        background-color: #EBF1FA !important;
+        padding: 6px 12px !important;
+        border-radius: 9999px !important;
+        border: 1px solid #ABC4E6 !important;
+        margin-top: 12px !important;
+        margin-bottom: 24px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
     button[data-baseweb="tab"] {
         border-radius: 9999px !important;
-        padding: 10px 22px !important;
+        padding: 8px 18px !important;
         font-weight: 700 !important;
-        font-size: 14px !important;
-        color: #7174B9 !important;
+        font-size: 13.5px !important;
+        color: #2F3A6E !important;
         background-color: transparent !important;
         border: none !important;
         transition: all 0.2s ease !important;
+        white-space: nowrap !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
         background: linear-gradient(135deg, #2F3A6E 0%, #7174B9 100%) !important;
         color: #FFFFFF !important;
-        box-shadow: 0 6px 18px rgba(47, 58, 110, 0.25) !important;
+        box-shadow: 0 4px 14px rgba(47, 58, 110, 0.25) !important;
     }
-    div[data-baseweb="tab-highlight"] {
+    div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {
         display: none !important;
     }
 
-    /* Streamlit Input & Selectbox Styling */
-    div[data-baseweb="input"] input {
-        border-radius: 12px !important;
-        color: #302F38 !important;
-    }
-
-    /* Streamlit Primary Buttons Overrides (#2F3A6E) */
+    /* Input & Button Overrides */
     div.stButton > button[kind="primary"], div.stButton > button {
         background: linear-gradient(135deg, #2F3A6E 0%, #474E86 100%) !important;
         color: #FFFFFF !important;
         border-radius: 12px !important;
         border: none !important;
         font-weight: 700 !important;
-        padding: 12px 26px !important;
+        padding: 10px 24px !important;
         box-shadow: 0 6px 16px rgba(47, 58, 110, 0.2) !important;
         transition: all 0.2s ease !important;
     }
-    div.stButton > button[kind="primary"]:hover, div.stButton > button:hover {
-        background: linear-gradient(135deg, #212952 0%, #393F6E 100%) !important;
+    div.stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 22px rgba(47, 58, 110, 0.3) !important;
     }
@@ -308,7 +291,7 @@ with st.sidebar:
     )
     
     if uploaded_files:
-        if st.button("🚀 Process & Select Paper", use_container_width=True, type="primary"):
+        if st.button("🚀 Process & Index Papers", use_container_width=True, type="primary"):
             with st.spinner("Parsing layout, extracting sections, and indexing paper..."):
                 last_name = None
                 for up_file in uploaded_files:
@@ -369,7 +352,10 @@ def render_scope_banner():
     else:
         st.warning("⚠️ No paper loaded in repository. Please upload a PDF research paper using the sidebar to begin analysis.")
 
-# Top Hero Header Banner (Inspired by Reference Designs 1 & 2)
+# Target papers list for active scope across all tools
+target_papers = [selected_filter] if selected_filter else paper_names
+
+# Top Hero Header Banner
 st.markdown("""
 <div class="hero-banner-container">
     <div class="hero-pill-badge">✨ Publication-Ready Scientific Suite</div>
@@ -391,61 +377,67 @@ tabs = st.tabs([
 ])
 
 # --------------------------------------------------------------------------
-# TAB 1: GROUNDED AI RESEARCH ASSISTANT
+# TAB 1: GROUNDED AI RESEARCH ASSISTANT (CONTINUOUS CHAT)
 # --------------------------------------------------------------------------
 with tabs[0]:
     st.markdown("<div class='modern-header'>💬 Grounded AI Research Assistant</div>", unsafe_allow_html=True)
     render_scope_banner()
+    st.caption("Ask continuous follow-up questions about the active document. All responses feature verified source citations.")
 
-    col_c1, col_c2 = st.columns([3, 1])
-    with col_c1:
-        user_question = st.text_input(
-            "Enter Question for Active Document:",
-            placeholder="e.g. What methodology, datasets, and key findings are presented in this paper?",
-            label_visibility="collapsed"
-        )
-    with col_c2:
-        search_btn = st.button("🔍 Search & Synthesize", type="primary", use_container_width=True, disabled=not paper_names)
+    # Render Chat History Feed
+    for entry in st.session_state.chat_history:
+        with st.chat_message("user"):
+            st.markdown(f"**Question ({entry.get('paper', 'Target')}):** {entry['question']}")
+        with st.chat_message("assistant"):
+            st.markdown(f"<span class='badge-chip'>VERIFIED CITATION GROUNDING</span>", unsafe_allow_html=True)
+            st.markdown(entry['answer'])
+            with st.expander("🔎 View Source Passages & Citation Details", expanded=False):
+                for idx, src in enumerate(entry.get("sources", [])):
+                    meta = src.get("metadata", {})
+                    st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** — Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
+                    st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
 
-    if search_btn and user_question and paper_names:
-        with st.spinner(f"Retrieving passages from {st.session_state.active_paper}..."):
-            retrieved_chunks = hybrid_retriever.retrieve(
-                query=user_question,
-                top_k=5,
-                paper_name=selected_filter
-            )
-            
-            context_str = "\n\n".join([
-                f"[Source: {c.get('metadata', {}).get('paper_name')} | Page: {c.get('metadata', {}).get('page_number')}]\n{c.get('text')}"
-                for c in retrieved_chunks
-            ])
+    # Continuous Chat Input
+    if prompt := st.chat_input("Ask a question about the active paper...", disabled=not paper_names):
+        with st.chat_message("user"):
+            st.markdown(f"**Question ({st.session_state.active_paper}):** {prompt}")
 
-            chat_prompt = f"""You are an expert academic research assistant. Answer the user's question using ONLY the provided literature context.
+        with st.chat_message("assistant"):
+            with st.spinner(f"Retrieving passages from {st.session_state.active_paper}..."):
+                retrieved_chunks = hybrid_retriever.retrieve(
+                    query=prompt,
+                    top_k=5,
+                    paper_name=selected_filter
+                )
+                context_str = "\n\n".join([
+                    f"[Source: {c.get('metadata', {}).get('paper_name')} | Page: {c.get('metadata', {}).get('page_number')}]\n{c.get('text')}"
+                    for c in retrieved_chunks
+                ])
+
+                chat_prompt = f"""You are an expert academic research assistant. Answer the user's question using ONLY the provided literature context for '{st.session_state.active_paper}'.
 Include bracketed citations [PaperName, p.X] for every key fact.
 
 Literature Context:
 {context_str}
 
-User Question: {user_question}
+User Question: {prompt}
 """
-            ai_answer = generate_response(chat_prompt)
-            st.session_state.chat_history.append({
-                "paper": st.session_state.active_paper,
-                "question": user_question,
-                "answer": ai_answer,
-                "sources": retrieved_chunks
-            })
+                ai_answer = generate_response(chat_prompt)
+                st.markdown(f"<span class='badge-chip'>VERIFIED CITATION GROUNDING</span>", unsafe_allow_html=True)
+                st.markdown(ai_answer)
 
-    # Render Feed
-    for entry in reversed(st.session_state.chat_history):
-        st.markdown(f"<div class='chat-user'><b>Question ({entry.get('paper', 'Target')}):</b> {entry['question']}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='chat-assistant'><span class='badge-chip'>VERIFIED CITATION GROUNDING</span><br><br>{entry['answer']}</div>", unsafe_allow_html=True)
-        with st.expander("🔎 View Source Passages & Page Citation Details", expanded=False):
-            for idx, src in enumerate(entry["sources"]):
-                meta = src.get("metadata", {})
-                st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** — Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
-                st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
-        st.markdown("---")
+                with st.expander("🔎 View Source Passages & Citation Details", expanded=False):
+                    for idx, src in enumerate(retrieved_chunks):
+                        meta = src.get("metadata", {})
+                        st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** — Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
+                        st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
+
+                st.session_state.chat_history.append({
+                    "paper": st.session_state.active_paper,
+                    "question": prompt,
+                    "answer": ai_answer,
+                    "sources": retrieved_chunks
+                })
 
 # --------------------------------------------------------------------------
 # TAB 2: DOCUMENT ANALYSIS TEARDOWN
@@ -455,7 +447,7 @@ with tabs[1]:
     render_scope_banner()
 
     if paper_names and selected_filter:
-        if st.button(f"📊 Generate Teardown for '{selected_filter}'", type="primary"):
+        if st.button(f"📊 Generate Teardown for '{selected_filter}'", type="primary", use_container_width=True):
             with st.spinner(f"Extracting structured sections for {selected_filter}..."):
                 analysis_res = analyze_paper(selected_filter)
                 st.markdown(f"### 📄 Academic Breakdown: `{selected_filter}`")
@@ -469,25 +461,26 @@ with tabs[1]:
 # TAB 3: CROSS-PAPER CONFLICT DETECTOR
 # --------------------------------------------------------------------------
 with tabs[2]:
-    st.markdown("<div class='modern-header'>⚡ Cross-Paper Conflict & Controversy Detector</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header'>⚡ Cross-Paper & Intra-Paper Conflict Detector</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Identifies where papers contradict each other, variance in empirical metrics, and opposing methodological assumptions.")
+    st.write("Identifies empirical contradictions, conflicting methodological assumptions, and internal trade-offs for active paper(s).")
 
     if paper_names:
-        if st.button("⚡ Run Cross-Paper Conflict Analysis", type="primary", use_container_width=True):
-            with st.spinner("Analyzing cross-paper literature refutation & empirical variance..."):
-                conflict_res = detect_cross_paper_conflicts(paper_names)
-                st.markdown("### 📊 Contradiction & Variance Analysis")
+        btn_label = f"⚡ Run Conflict Analysis for '{st.session_state.active_paper}'" if selected_filter else "⚡ Run Cross-Paper Conflict Analysis (All Papers)"
+        if st.button(btn_label, type="primary", use_container_width=True):
+            with st.spinner(f"Analyzing literature refutation & empirical variance for {st.session_state.active_paper}..."):
+                conflict_res = detect_cross_paper_conflicts(target_papers)
+                st.markdown(f"### 📊 Contradiction & Variance Analysis ({st.session_state.active_paper})")
                 st.write(conflict_res.get("summary", ""))
 
                 for idx, c in enumerate(conflict_res.get("conflicts", [])):
                     with st.container():
-                        st.markdown(f"#### <span class='badge-conflict'>CONFLICT #{idx+1}</span> {c.get('conflict_topic')}", unsafe_allow_html=True)
+                        st.markdown(f"#### <span class='badge-conflict'>CONFLICT / TRADE-OFF #{idx+1}</span> {c.get('conflict_topic')}", unsafe_allow_html=True)
                         col_f1, col_f2 = st.columns(2)
                         with col_f1:
-                            st.markdown(f"<div class='modern-card'><b>Claim A:</b><br>{c.get('paper_a_claim')}</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div class='modern-card'><b>Perspective / Claim A:</b><br>{c.get('paper_a_claim')}</div>", unsafe_allow_html=True)
                         with col_f2:
-                            st.markdown(f"<div class='modern-card'><b>Claim B (Opposing):</b><br>{c.get('paper_b_claim')}</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div class='modern-card'><b>Opposing Claim / Risk B:</b><br>{c.get('paper_b_claim')}</div>", unsafe_allow_html=True)
                         st.info(f"**Root Cause of Variance:** {c.get('root_cause')}")
                         st.success(f"**Reconciliation Hypothesis:** {c.get('reconciliation_hypothesis')}")
                         st.markdown("---")
@@ -498,22 +491,26 @@ with tabs[2]:
 with tabs[3]:
     st.markdown("<div class='modern-header'>📐 Formulas & Technical Setup</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Extracts mathematical equations (LaTeX), hyperparameter setups, and numerical metrics from the active paper.")
+    st.write("Extracts mathematical equations (LaTeX), hardware sensor specs, hyperparameter setups, and numerical metrics.")
 
     if paper_names and selected_filter:
-        if st.button(f"📐 Extract Formulas for '{selected_filter}'", type="primary"):
-            with st.spinner(f"Extracting mathematical equations for {selected_filter}..."):
+        if st.button(f"📐 Extract Formulas for '{selected_filter}'", type="primary", use_container_width=True):
+            with st.spinner(f"Extracting mathematical equations & quantitative metrics for {selected_filter}..."):
                 f_res = extract_formulas_and_metrics(selected_filter)
                 st.markdown(f"### 🧮 Mathematical & Technical Setup: `{selected_filter}`")
                 st.write(f_res.get("summary", ""))
 
                 st.markdown("#### 📐 Extracted Equations & Formulas")
-                for eq in f_res.get("equations", []):
-                    with st.expander(f"Equation: {eq.get('name')}", expanded=True):
-                        st.latex(eq.get("latex", ""))
-                        st.caption(eq.get("description", ""))
+                eqs = f_res.get("equations", [])
+                if eqs:
+                    for eq in eqs:
+                        with st.expander(f"Equation: {eq.get('name')}", expanded=True):
+                            st.latex(eq.get("latex", ""))
+                            st.caption(eq.get("description", ""))
+                else:
+                    st.info("No formal LaTeX equations found in document text.")
 
-                st.markdown("#### ⚙️ Hyperparameters & Dataset Metrics")
+                st.markdown("#### ⚙️ Hardware Sensors, Parameters & Dataset Metrics")
                 hp_data = f_res.get("hyperparameters_and_setup", [])
                 if hp_data:
                     st.dataframe(pd.DataFrame(hp_data), use_container_width=True)
@@ -529,19 +526,19 @@ with tabs[4]:
 
     col_r1, col_r2 = st.columns(2)
     with col_r1:
-        st.markdown("#### 📚 Literature Review Synthesis")
-        if st.button("Synthesize Literature Review", type="primary", use_container_width=True, disabled=not paper_names):
-            with st.spinner("Synthesizing literature review..."):
-                rev = generate_literature_review(paper_names)
+        st.markdown(f"#### 📚 Literature Review Synthesis ({st.session_state.active_paper})")
+        if st.button(f"Synthesize Review for '{st.session_state.active_paper}'", type="primary", use_container_width=True, disabled=not paper_names):
+            with st.spinner(f"Synthesizing literature review for {st.session_state.active_paper}..."):
+                rev = generate_literature_review(target_papers)
                 for k, v in rev.items():
                     with st.expander(f"📌 {k}", expanded=True):
                         st.write(v)
 
     with col_r2:
-        st.markdown("#### 🔬 Research Gap Matrix")
-        if st.button("Discover Research Gaps", type="primary", use_container_width=True, disabled=not paper_names):
-            with st.spinner("Analyzing limitations and open trajectories..."):
-                gaps = detect_research_gaps(paper_names)
+        st.markdown(f"#### 🔬 Research Gap Matrix ({st.session_state.active_paper})")
+        if st.button(f"Discover Research Gaps for '{st.session_state.active_paper}'", type="primary", use_container_width=True, disabled=not paper_names):
+            with st.spinner(f"Analyzing limitations and open trajectories for {st.session_state.active_paper}..."):
+                gaps = detect_research_gaps(target_papers)
                 for k, v in gaps.items():
                     with st.expander(f"🚩 {k}", expanded=True):
                         st.info(v)
@@ -558,7 +555,7 @@ with tabs[5]:
         value=f"A Verifiable Multi-Agent Framework for Scientific Synthesis of {selected_filter if selected_filter else 'Academic Literature'}"
     )
     
-    if st.button("📝 Generate IEEE Conference Draft & LaTeX", type="primary", disabled=not paper_names):
+    if st.button(f"📝 Generate IEEE Conference Draft & LaTeX for '{st.session_state.active_paper}'", type="primary", disabled=not paper_names, use_container_width=True):
         progress_bar = st.progress(0)
         status_text = st.empty()
 
