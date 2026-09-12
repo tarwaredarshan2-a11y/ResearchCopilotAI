@@ -23,7 +23,7 @@ from config import (
 )
 from utils.pdf_loader import save_uploaded_pdf
 from utils.multimodal_parser import parse_multimodal_pdf, chunk_parsed_document
-from utils.embeddings import add_documents_to_vector_store, get_all_paper_names
+from utils.embeddings import add_documents_to_vector_store, get_all_paper_names, delete_paper_from_vector_store
 from utils.hybrid_retriever import hybrid_retriever
 from utils.orchestrator import orchestrator
 from utils.evaluation_suite import evaluation_suite
@@ -33,7 +33,6 @@ from utils.literature_review import generate_literature_review
 from utils.research_gap import detect_research_gaps
 from utils.conflict_detector import detect_cross_paper_conflicts
 from utils.formula_extractor import extract_formulas_and_metrics
-from utils.retriever import retrieve_all_chunks_for_paper
 
 # ==========================================================================
 # PAGE CONFIGURATION & MODERN MINIMALIST DESIGN SYSTEM
@@ -47,302 +46,580 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-    
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root {
+        --ink: #14323a;
+        --muted: #5d747b;
+        --line: #cce5e9;
+        --page: #f7fbfc;
+        --panel: #ffffff;
+        --surface-muted: #eaf7f9;
+        --heading: #14323a;
+        --heading-accent: #32bacd;
+        --primary: #168fa5;
+        --primary-dark: #0e6678;
+        --accent: #32bacd;
+        --warning: #D97706;
+        --danger: #DC2626;
+    }
+
     html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'DM Sans', sans-serif;
+        color: var(--ink);
     }
-    
-    /* Main Page Canvas Background */
+
     .stApp {
-        background: linear-gradient(180deg, #EBF1FA 0%, #F5F7FC 350px, #F5F7FC 100%);
-        color: #302F38;
+        background:
+            radial-gradient(circle at 90% 0%, rgba(50,186,205,.12), transparent 28rem),
+            var(--page);
     }
-    
-    /* Sidebar Styling */
+
+    .block-container {
+        max-width: 1380px;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        letter-spacing: 0 !important;
+        color: var(--ink) !important;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .stApp p, .stApp li, .stApp label, .stApp [data-testid="stMarkdownContainer"] {
+        color: var(--heading);
+    }
+
     section[data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #ABC4E6;
-        box-shadow: 4px 0 20px rgba(47, 58, 110, 0.03);
-    }
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3 {
-        color: #2F3A6E;
-        font-weight: 700;
+        background: linear-gradient(180deg, #0f3f4a 0%, #0d5968 100%);
+        border-right: 1px solid rgba(255,255,255,0.08);
+        min-width: 290px;
     }
 
-    /* Organic Curved Hero Header Banner */
-    .hero-banner-container {
-        position: relative;
-        background: linear-gradient(135deg, #2F3A6E 0%, #474E86 45%, #7174B9 100%);
-        border-radius: 24px;
-        padding: 34px 40px 50px 40px;
-        color: #FFFFFF;
-        margin-bottom: 14px;
-        box-shadow: 0 16px 36px rgba(47, 58, 110, 0.18);
-        overflow: hidden;
+    section[data-testid="stSidebar"] * {
+        color: #e9fbfd;
     }
-    .hero-banner-container::after {
-        content: "";
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        right: 0;
-        height: 32px;
-        background: #F5F7FC;
-        clip-path: ellipse(55% 100% at 50% 100%);
+
+    section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stCaptionContainer {
+        color: #b8dce2 !important;
     }
-    .hero-banner-container h1 {
-        color: #FFFFFF !important;
-        font-size: 32px;
+
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(213,247,250,0.22);
+        margin: 1rem 0;
+    }
+
+    /* Dropdown Popover List Max-Height & Custom Scrollbar Fix */
+    div[data-baseweb="popover"] div[role="listbox"],
+    ul[role="listbox"],
+    div[data-baseweb="menu"],
+    div[data-baseweb="select"] ul {
+        max-height: 260px !important;
+        overflow-y: auto !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--line) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+    }
+    div[data-baseweb="popover"] li[role="option"] {
+        padding: 10px 14px !important;
+        font-size: 13.5px !important;
+    }
+    div[data-baseweb="popover"] ::-webkit-scrollbar {
+        width: 6px !important;
+    }
+    div[data-baseweb="popover"] ::-webkit-scrollbar-thumb {
+        background: var(--heading-accent) !important;
+        border-radius: 999px !important;
+    }
+    div[data-baseweb="popover"] ::-webkit-scrollbar-track {
+        background: var(--surface-muted) !important;
+    }
+
+
+    .sidebar-brand {
+        border: 1px solid rgba(255,255,255,0.10);
+        background: transparent;
+        border-bottom: 1px solid rgba(213,247,250,0.22);
+        border-radius: 0;
+        padding: 4px 2px 20px;
+        margin-bottom: 22px;
+    }
+
+    .sidebar-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 22px;
         font-weight: 800;
-        margin: 0 0 6px 0;
-        letter-spacing: -0.025em;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.12);
-    }
-    .hero-banner-container p {
-        color: #C0CDEC !important;
-        font-size: 15px;
-        margin: 0;
-        font-weight: 500;
-        max-width: 720px;
-        line-height: 1.55;
-    }
-
-    /* Floating Pill Header Badges */
-    .hero-pill-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
         color: #FFFFFF;
-        padding: 5px 15px;
-        border-radius: 9999px;
+        line-height: 1.2;
+        margin-bottom: 6px;
+    }
+
+    .sidebar-subtitle {
         font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 12px;
-        margin-right: 8px;
-        letter-spacing: 0.02em;
+        color: #b8dce2;
+        line-height: 1.45;
     }
 
-    /* Primary Cards & Container Panels */
-    .modern-card {
-        background-color: #FFFFFF;
-        border: 1px solid #ABC4E6;
-        border-radius: 20px;
-        padding: 24px 28px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 24px rgba(47, 58, 110, 0.05);
-        color: #302F38;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .modern-card:hover {
-        box-shadow: 0 12px 30px rgba(47, 58, 110, 0.08);
+    .sidebar-panel {
+        border: 0;
+        border-top: 1px solid rgba(213,247,250,0.22);
+        background: transparent;
+        border-radius: 0;
+        padding: 18px 2px 4px;
+        margin: 18px 0;
     }
 
-    /* Active Scope Banner Pill */
-    .scope-pill {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F0F4FC 100%);
-        border: 1px solid #ABC4E6;
-        border-left: 5px solid #2F3A6E;
-        border-radius: 16px;
-        padding: 14px 22px;
-        font-size: 14px;
-        font-weight: 700;
-        color: #2F3A6E;
-        margin-top: 8px;
-        margin-bottom: 24px;
+    .sidebar-panel-title {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 4px 16px rgba(47, 58, 110, 0.04);
-    }
-
-    /* Section Titles */
-    .modern-header {
-        font-size: 22px;
+        gap: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #b9edf2;
         font-weight: 800;
-        color: #2F3A6E;
-        border-bottom: 2px solid #ABC4E6;
-        padding-bottom: 10px;
-        margin-top: 12px;
-        margin-bottom: 20px;
-        letter-spacing: -0.015em;
-    }
-
-    /* Citation Quote Cards */
-    .citation-quote {
-        border-left: 4px solid #7174B9;
-        background-color: #F4F7FC;
-        padding: 14px 18px;
-        font-style: italic;
-        margin: 12px 0;
-        border-radius: 0 12px 12px 0;
-        color: #302F38;
-        font-size: 14px;
-        line-height: 1.65;
-    }
-
-    /* Clean Badges & Chips */
-    .badge-chip {
-        display: inline-block;
-        background: #C0CDEC;
-        color: #2F3A6E;
-        border: 1px solid #7174B9;
-        padding: 4px 14px;
-        border-radius: 9999px;
-        font-size: 12px;
-        font-weight: 700;
         margin-bottom: 10px;
-        letter-spacing: 0.02em;
     }
-    
-    .badge-conflict {
-        background: #FEE2E2;
-        color: #991B1B;
-        border: 1px solid #FCA5A5;
-        padding: 4px 14px;
-        border-radius: 9999px;
+
+    .sidebar-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .sidebar-stat {
+        border: 1px solid rgba(213,247,250,0.22);
+        background: rgba(255,255,255,0.08);
+        border-radius: 6px;
+        padding: 10px;
+    }
+
+    .sidebar-stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: #FFFFFF;
+        line-height: 1;
+    }
+
+    .sidebar-stat-label {
+        font-size: 11px;
+        color: #b8dce2;
+        margin-top: 5px;
+    }
+
+    .hero-banner-container {
+        background: transparent;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        padding: 0 0 24px;
+        margin-bottom: 22px;
+        box-shadow: none;
+    }
+
+    .hero-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .hero-kicker {
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .hero-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #e8f4ef;
+        color: var(--primary-dark);
+        border: 1px solid #b9ded0;
+        border-radius: 999px;
+        padding: 6px 12px;
         font-size: 12px;
         font-weight: 700;
     }
 
-    /* STREAMLIT TAB CUSTOMIZATION - FIXING OVERFLOW & UNALIGNED BARS */
-    div[data-baseweb="tab-list"] {
-        gap: 8px !important;
-        background-color: #EBF1FA !important;
-        padding: 6px 12px !important;
-        border-radius: 9999px !important;
-        border: 1px solid #ABC4E6 !important;
-        margin-top: 12px !important;
-        margin-bottom: 24px !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
+    .hero-title {
+        color: var(--ink);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(30px, 4vw, 46px);
+        line-height: 1.08;
+        font-weight: 800;
+        margin: 0 0 10px 0;
     }
+
+    .hero-subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        max-width: 820px;
+        line-height: 1.65;
+        margin: 0;
+    }
+
+    .hero-banner-container > div:not(.hero-topline):not(.hero-metrics),
+    .hero-banner-container > h1:not(.hero-title),
+    .hero-banner-container > p:not(.hero-subtitle) {
+        display: none;
+    }
+
+    .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .metric-card {
+        border: 1px solid var(--line);
+        background: #ffffff;
+        border-radius: 6px;
+        padding: 14px;
+    }
+
+    .metric-value {
+        font-size: 24px;
+        line-height: 1;
+        font-weight: 800;
+        color: var(--primary-dark);
+    }
+
+    .metric-label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 7px;
+        font-weight: 600;
+    }
+
+    .scope-pill {
+        background: #edf9fa;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--primary);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin: 4px 0 18px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        color: var(--ink);
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.045);
+    }
+
+    .scope-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink);
+    }
+
+    .scope-detail {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+
+    .scope-count {
+        flex: 0 0 auto;
+        background: #e1f5f8;
+        color: var(--primary-dark);
+        border: 1px solid #a9dfe7;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .modern-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--heading);
+        margin: 10px 0 12px 0;
+        padding-bottom: 10px;
+        border-bottom: 0;
+    }
+
+    .modern-header::before {
+        content: "";
+        width: 8px;
+        height: 26px;
+        border-radius: 999px;
+        background: var(--heading-accent);
+        display: inline-block;
+    }
+
+    .heading-ask::before { background: #ddf0f5; }
+    .heading-teardown::before { background: #b2dee6; }
+    .heading-conflicts::before { background: #85ceda; }
+    .heading-formulas::before { background: #32bacd; }
+    .heading-review::before { background: #20aec2; }
+    .heading-draft::before { background: #18a3b6; }
+
+    .section-note {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+        margin: -4px 0 18px 20px;
+    }
+
+    .modern-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 18px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 20px rgba(29, 48, 43, 0.045);
+        color: var(--ink);
+    }
+
+    .result-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+        margin: 14px 0;
+    }
+
+    .citation-quote {
+        border-left: 3px solid var(--primary);
+        background: var(--surface-muted);
+        padding: 12px 14px;
+        margin: 10px 0;
+        border-radius: 0 8px 8px 0;
+        color: var(--heading);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .badge-chip, .badge-conflict {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .badge-chip {
+        background: #e1f5f8;
+        color: var(--primary-dark);
+        border: 1px solid #a9dfe7;
+    }
+
+    .badge-conflict {
+        background: #FEF3F2;
+        color: #B42318;
+        border: 1px solid #FECDCA;
+    }
+
+    div[data-baseweb="tab-list"] {
+        gap: 10px !important;
+        background: transparent !important;
+        padding: 6px 0 10px !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        margin: 10px 0 22px 0 !important;
+        box-shadow: none;
+        overflow-x: auto !important;
+    }
+
     button[data-baseweb="tab"] {
-        border-radius: 9999px !important;
-        padding: 8px 18px !important;
+        border-radius: 10px !important;
+        padding: 12px 16px !important;
         font-weight: 700 !important;
-        font-size: 13.5px !important;
-        color: #2F3A6E !important;
-        background-color: transparent !important;
-        border: none !important;
-        transition: all 0.2s ease !important;
+        font-size: 13px !important;
+        color: #49666e !important;
+        background: #ffffff !important;
+        border: 1px solid var(--line) !important;
+        box-shadow: 0 5px 14px rgba(14, 102, 120, 0.06) !important;
         white-space: nowrap !important;
     }
-    button[data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #2F3A6E 0%, #7174B9 100%) !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(47, 58, 110, 0.25) !important;
+
+    button[data-baseweb="tab"]:hover {
+        background: #e1f5f8 !important;
+        color: var(--ink) !important;
     }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        background: #168fa5 !important;
+        color: #FFFFFF !important;
+        border-color: #168fa5 !important;
+        box-shadow: 0 8px 18px rgba(22, 143, 165, 0.24) !important;
+    }
+
+    button[data-baseweb="tab"]:nth-child(1) { border-top: 3px solid #ddf0f5 !important; }
+    button[data-baseweb="tab"]:nth-child(2) { border-top: 3px solid #b2dee6 !important; }
+    button[data-baseweb="tab"]:nth-child(3) { border-top: 3px solid #85ceda !important; }
+    button[data-baseweb="tab"]:nth-child(4) { border-top: 3px solid #32bacd !important; }
+    button[data-baseweb="tab"]:nth-child(5) { border-top: 3px solid #20aec2 !important; }
+    button[data-baseweb="tab"]:nth-child(6) { border-top: 3px solid #18a3b6 !important; }
+
     div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {
         display: none !important;
     }
 
-    /* Table Styling */
-    .stApp table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-        margin: 16px 0 !important;
-        border-radius: 12px !important;
-        overflow: hidden !important;
-        border: 1px solid #ABC4E6 !important;
-    }
-    .stApp th {
-        background: linear-gradient(135deg, #2F3A6E 0%, #474E86 100%) !important;
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        padding: 12px 16px !important;
-        text-align: left !important;
-    }
-    .stApp td {
-        background-color: #FFFFFF !important;
-        color: #302F38 !important;
-        padding: 10px 16px !important;
-        border-bottom: 1px solid #EBF1FA !important;
-        font-size: 13.5px !important;
-    }
-    .stApp tr:nth-child(even) td {
-        background-color: #F8FAFC !important;
+    div.stButton > button {
+        border-radius: 6px !important;
+        border: 1px solid #C7D7FE !important;
+        background: #FFFFFF !important;
+        color: var(--primary-dark) !important;
+        font-weight: 800 !important;
+        padding: 0.62rem 1rem !important;
+        box-shadow: 0 5px 12px rgba(29, 48, 43, 0.08) !important;
     }
 
-    /* Expander Styling */
-    div[data-testid="stExpander"] {
-        background-color: #FFFFFF !important;
-        border: 1px solid #ABC4E6 !important;
-        border-radius: 16px !important;
-        margin-bottom: 12px !important;
-        box-shadow: 0 4px 12px rgba(47, 58, 110, 0.03) !important;
-        overflow: hidden !important;
-    }
-    div[data-testid="stExpander"] summary {
-        font-weight: 700 !important;
-        color: #2F3A6E !important;
-        padding: 14px 18px !important;
+    div.stButton > button[kind="primary"] {
+        background: var(--primary) !important;
+        color: #FFFFFF !important;
+        border-color: var(--primary) !important;
     }
 
-    /* Input & Button Overrides */
-    div.stButton > button[kind="primary"], div.stButton > button {
-        background: linear-gradient(135deg, #2F3A6E 0%, #474E86 100%) !important;
-        color: #FFFFFF !important;
-        border-radius: 12px !important;
-        border: none !important;
-        font-weight: 700 !important;
-        padding: 10px 24px !important;
-        box-shadow: 0 6px 16px rgba(47, 58, 110, 0.2) !important;
-        transition: all 0.2s ease !important;
-    }
     div.stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 22px rgba(47, 58, 110, 0.3) !important;
+        border-color: var(--primary) !important;
+        transform: translateY(-1px);
     }
 
-    /* Modern Footer Container */
+    div[data-testid="stFileUploader"], div[data-testid="stSelectbox"], div[data-testid="stMultiSelect"], div[data-testid="stRadio"] {
+        border-radius: 8px;
+    }
+
+    div[data-testid="stExpander"] {
+        background: var(--panel) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 8px !important;
+        margin-bottom: 10px !important;
+        box-shadow: 0 6px 16px rgba(16, 24, 40, 0.035) !important;
+        overflow: hidden !important;
+    }
+
+    div[data-testid="stExpander"] summary {
+        font-weight: 800 !important;
+        color: var(--ink) !important;
+    }
+
+    .stApp table {
+        border: 1px solid var(--line) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
+
+    .stApp th {
+        background: var(--surface-muted) !important;
+        color: var(--heading) !important;
+        font-weight: 800 !important;
+    }
+
     .app-footer-container {
-        background: linear-gradient(135deg, #2F3A6E 0%, #1E2548 100%);
-        border-radius: 24px;
-        padding: 36px 42px;
-        color: #FFFFFF;
-        margin-top: 48px;
-        margin-bottom: 24px;
-        box-shadow: 0 16px 36px rgba(47, 58, 110, 0.2);
-        text-align: center;
+        background: transparent;
+        border-top: 1px solid var(--line);
+        border-radius: 0;
+        padding: 16px 0 4px;
+        color: var(--muted);
+        margin: 42px 0 0;
     }
+
+    .footer-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
     .footer-brand {
-        font-size: 20px;
+        font-size: 14px;
         font-weight: 800;
-        color: #FFFFFF;
-        margin-bottom: 6px;
+        color: var(--primary-dark);
     }
+
     .footer-sub {
-        font-size: 13.5px;
-        color: #C0CDEC;
-        margin-bottom: 20px;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+        max-width: 620px;
+        line-height: 1.6;
     }
+
     .footer-pills {
         display: flex;
-        justify-content: center;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 24px;
+        gap: 8px;
+        justify-content: flex-end;
     }
+
     .footer-pill-item {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #FFFFFF;
-        padding: 6px 16px;
-        border-radius: 9999px;
-        font-size: 12px;
-        font-weight: 600;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #E5E7EB;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
     }
+
     .footer-copy {
+        color: var(--muted);
         font-size: 12px;
-        color: #ABC4E6;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        padding-top: 18px;
+        border-top: 0;
+        padding-top: 0;
+        margin-top: 8px;
+    }
+
+    .app-footer-container > .footer-brand,
+    .app-footer-container > .footer-sub,
+    .app-footer-container > .footer-pills,
+    .app-footer-container > .footer-copy:not(.clean-footer-copy) {
+        display: none;
+    }
+
+    @media (max-width: 900px) {
+        .hero-metrics {
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+        }
+        .scope-pill {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .block-container { padding: 1.25rem 1rem 2rem; }
+        .hero-metrics { gap: 8px; }
+        .hero-title { font-size: 32px; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --ink: #e8f8fa;
+            --muted: #a8cbd0;
+            --line: #2c555e;
+            --page: #0b171a;
+            --panel: #13272c;
+            --surface-muted: #18383f;
+            --heading: #e8f8fa;
+            --heading-accent: #32bacd;
+            --primary: #32bacd;
+            --primary-dark: #b9edf2;
+            --accent: #32bacd;
+        }
+        .stApp { background: radial-gradient(circle at 90% 0%, rgba(50,186,205,.14), transparent 28rem), var(--page); }
+        .hero-status, .scope-pill { background: #123b43; color: #d6f5f7; }
+        .metric-card, .scope-pill, .modern-card, .result-panel { border-color: var(--line); }
+        .scope-count, .badge-chip { background: #154650; color: #d2f5f8; border-color: #287381; }
+        .citation-quote { color: #d4edf0; }
+        div.stButton > button { background: var(--panel) !important; color: #d6f5f7 !important; border-color: #397985 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -360,20 +637,26 @@ paper_names = get_all_paper_names()
 # SIDEBAR REPOSITORY & MULTI-PAPER SELECTION CONTROLS
 # ==========================================================================
 with st.sidebar:
-    st.markdown(f"## {APP_ICON} **Research Co-Pilot**")
-    st.markdown("<div style='font-size: 13px; color: #7174B9; font-weight: 600;'>Verifiable Multi-Paper AI Suite</div>", unsafe_allow_html=True)
-    st.markdown("---")
+    st.markdown(
+        f"""
+        <div class="sidebar-brand">
+            <div class="sidebar-title">Research Co-Pilot</div>
+            <div class="sidebar-subtitle">A focused workspace for reading, comparing, and shaping research.</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    st.markdown("### 📤 Upload Research Papers")
+    st.markdown('<div class="sidebar-panel"><div class="sidebar-panel-title"><span>Add sources</span><span>PDF</span></div>', unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
-        "Upload PDF Paper(s)",
+        "Upload research papers",
         type=["pdf"],
         accept_multiple_files=True,
         help="Upload academic papers to compare layout, methodology, formulas, and empirical results side-by-side."
     )
     
     if uploaded_files:
-        if st.button("🚀 Process & Index Papers", use_container_width=True, type="primary"):
+        if st.button("Add to workspace", use_container_width=True, type="primary"):
             with st.spinner("Parsing layout, extracting sections, and indexing paper..."):
                 last_name = None
                 for up_file in uploaded_files:
@@ -388,20 +671,20 @@ with st.sidebar:
                 hybrid_retriever.sync_bm25_from_vector_store()
                 st.success("Indexed uploaded paper(s) successfully!")
                 st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("### 📄 Comparative Scope Controls")
+    st.markdown('<div class="sidebar-panel"><div class="sidebar-panel-title"><span>Choose focus</span><span>View</span></div>', unsafe_allow_html=True)
     if paper_names:
         scope_mode = st.radio(
-            "Select Comparative Mode:",
-            ["📊 Compare Multiple Papers (Multi-Paper Matrix)", "🎯 Single Paper Deep-Dive"],
+            "Choose workflow",
+            ["Compare multiple papers", "Single paper deep-dive"],
             index=0 if len(paper_names) > 1 else 1,
             help="Choose whether to compare multiple research papers side-by-side or focus on 1 paper."
         )
 
-        if scope_mode == "📊 Compare Multiple Papers (Multi-Paper Matrix)":
+        if scope_mode == "Compare multiple papers":
             selected_papers = st.multiselect(
-                "Select Papers to Compare:",
+                "Papers to compare",
                 options=paper_names,
                 default=paper_names,
                 help="Select 2 or more research papers to compare side-by-side."
@@ -409,59 +692,91 @@ with st.sidebar:
             if not selected_papers:
                 selected_papers = paper_names
             target_papers = selected_papers
-            st.session_state.active_paper = f"Multi-Paper Matrix ({len(target_papers)} Papers Selected)"
+            st.session_state.active_paper = "Comparative reading"
             selected_filter = None
         else:
             selected_single = st.selectbox(
-                "Select Target Paper:",
+                "Target paper",
                 options=paper_names,
                 index=0,
                 help="Analysis will focus strictly on this single document."
             )
             target_papers = [selected_single]
             st.session_state.active_paper = selected_single
-            selected_filter = selected_single
     else:
         target_papers = []
         selected_filter = None
         st.info("No papers added yet. Upload PDF paper(s) above to begin.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown("<div style='font-size: 11.5px; color: #7174B9; text-align: center;'>IEEE Author Center Standards Compliant<br>© 2026 Research Co-Pilot AI</div>", unsafe_allow_html=True)
 
-# Helper function to render scope banner
+    if paper_names:
+        st.markdown('<div class="sidebar-panel"><div class="sidebar-panel-title"><span>Manage papers</span><span>Delete</span></div>', unsafe_allow_html=True)
+        with st.expander("🗑️ Delete Previous Papers", expanded=False):
+            st.caption("Permanently remove selected paper(s) from storage & Chroma vector database.")
+            papers_to_del = st.multiselect(
+                "Select paper(s) to remove",
+                options=paper_names,
+                key="del_papers_multiselect",
+                help="Selected paper(s) will be permanently deleted from database and disk."
+            )
+            if st.button("🔴 Permanently Delete Selected Paper(s)", use_container_width=True):
+                if papers_to_del:
+                    for p_del in papers_to_del:
+                        delete_paper_from_vector_store(p_del)
+                    hybrid_retriever.sync_bm25_from_vector_store()
+                    st.success(f"Permanently removed {len(papers_to_del)} paper(s)!")
+                    st.rerun()
+                else:
+                    st.warning("Please select at least one paper to delete.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+# Show only the active reading context, without exposing system metrics.
 def render_scope_banner():
     if paper_names and target_papers:
         if len(target_papers) > 1:
+            display_names = ", ".join([p[:34] + ("..." if len(p) > 34 else "") for p in target_papers[:3]])
+            if len(target_papers) > 3:
+                display_names += f" + {len(target_papers) - 3} more"
             st.markdown(
-                f"<div class='scope-pill'>"
-                f"<span>📊 Comparing Multi-Paper Scope: <b>{', '.join([p[:35] + ('...' if len(p)>35 else '') for p in target_papers])}</b></span>"
-                f"<span style='font-size: 12.5px; color: #2F3A6E;'>{len(target_papers)} Papers Selected</span>"
-                f"</div>",
+                f"""
+                <div class="scope-pill">
+                    <div>
+                        <div class="scope-title">Comparative reading</div>
+                        <div class="scope-detail">{display_names}</div>
+                    </div>
+                        <div class="scope-count">Selected sources</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
         else:
             p_name = target_papers[0]
-            chunk_count = len(retrieve_all_chunks_for_paper(p_name))
             st.markdown(
-                f"<div class='scope-pill'>"
-                f"<span>🎯 Currently Analyzing Active Paper: <b>{p_name}</b></span>"
-                f"<span style='font-size: 12.5px; color: #2F3A6E;'>{chunk_count} Passages Indexed</span>"
-                f"</div>",
+                f"""
+                <div class="scope-pill">
+                    <div>
+                        <div class="scope-title">Focused reading</div>
+                        <div class="scope-detail">{p_name}</div>
+                    </div>
+                        <div class="scope-count">Active source</div>
+                </div>
+                """,
                 unsafe_allow_html=True
             )
     else:
-        st.warning("⚠️ No paper loaded in repository. Please upload PDF research paper(s) using the sidebar to begin analysis.")
+        st.warning("No paper loaded in repository. Upload PDF research paper(s) using the sidebar to begin analysis.")
 
-# Top Hero Header Banner
-st.markdown("""
+# Top workspace header
+st.markdown(f"""
 <div class="hero-banner-container">
-    <div>
-        <span class="hero-pill-badge">✨ Publication-Ready Scientific Suite</span>
-        <span class="hero-pill-badge">🎓 5th Sem Capstone Project & IEEE Studio</span>
+    <div class="hero-topline">
+        <div class="hero-kicker">Research workspace</div>
+        <div class="hero-status">Ready to explore</div>
     </div>
-    <h1>🔬 Research Paper Co-Pilot AI</h1>
-    <p>Verifiable Multimodal Scientific AI Platform for Multi-Paper Comparative Synthesis & Camera-Ready IEEE Manuscripts</p>
+    <h1 class="hero-title">Make sense of your research.</h1>
+    <p class="hero-subtitle">Read evidence, compare ideas, uncover gaps, and turn your notes into a clear academic draft.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -469,21 +784,21 @@ st.markdown("""
 # MAIN PRODUCT TABS
 # ==========================================================================
 tabs = st.tabs([
-    "💬 Grounded AI Research Assistant",
-    "🔍 Document Analysis Teardown",
-    "⚡ Cross-Paper Conflict Detector",
-    "📐 Formulas & Quantitative Setup",
-    "🧭 Literature Review & Gaps",
-    "✍️ IEEE Manuscript & LaTeX Studio"
+    "Ask",
+    "Understand",
+    "Compare",
+    "Measure",
+    "Discover",
+    "Write"
 ])
 
 # --------------------------------------------------------------------------
 # TAB 1: GROUNDED AI RESEARCH ASSISTANT (CONTINUOUS CHAT)
 # --------------------------------------------------------------------------
 with tabs[0]:
-    st.markdown("<div class='modern-header'>💬 Grounded AI Research Assistant</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-ask'>Ask your papers</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.caption("Ask continuous follow-up questions comparing active papers. All responses feature verified source citations.")
+    st.markdown("<div class='section-note'>Ask follow-up questions across the selected papers. Answers are grounded in retrieved source passages.</div>", unsafe_allow_html=True)
 
     # Render Chat History Feed
     for entry in st.session_state.chat_history:
@@ -492,10 +807,10 @@ with tabs[0]:
         with st.chat_message("assistant"):
             st.markdown(f"<span class='badge-chip'>VERIFIED CITATION GROUNDING</span>", unsafe_allow_html=True)
             st.markdown(entry['answer'])
-            with st.expander("🔎 View Source Passages & Citation Details", expanded=False):
+            with st.expander("View source passages and citation details", expanded=False):
                 for idx, src in enumerate(entry.get("sources", [])):
                     meta = src.get("metadata", {})
-                    st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** — Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
+                    st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** - Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
                     st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
 
     # Continuous Chat Input
@@ -531,10 +846,10 @@ User Question: {prompt}
                 st.markdown(f"<span class='badge-chip'>VERIFIED CITATION GROUNDING</span>", unsafe_allow_html=True)
                 st.markdown(ai_answer)
 
-                with st.expander("🔎 View Source Passages & Citation Details", expanded=False):
+                with st.expander("View source passages and citation details", expanded=False):
                     for idx, src in enumerate(retrieved_chunks):
                         meta = src.get("metadata", {})
-                        st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** — Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
+                        st.markdown(f"**[{idx+1}] {meta.get('paper_name')}** - Page {meta.get('page_number')} (Section: {meta.get('section', 'General')})")
                         st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
 
                 st.session_state.chat_history.append({
@@ -548,34 +863,34 @@ User Question: {prompt}
 # TAB 2: DOCUMENT ANALYSIS TEARDOWN
 # --------------------------------------------------------------------------
 with tabs[1]:
-    st.markdown("<div class='modern-header'>🔍 Document Analysis Teardown</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-teardown'>Understand a paper</div>", unsafe_allow_html=True)
     render_scope_banner()
 
     if target_papers:
-        if st.button(f"📊 Generate Teardown Breakdown ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+        if st.button(f"Generate teardown breakdown ({len(target_papers)} selected papers)", type="primary", use_container_width=True):
             with st.spinner("Extracting structured academic breakdowns for selected papers..."):
-                t_cols = st.tabs([f"📄 {p[:30]}..." for p in target_papers])
+                t_cols = st.tabs([f"{p[:30]}..." for p in target_papers])
                 for idx, p_name in enumerate(target_papers):
                     with t_cols[idx]:
                         analysis_res = analyze_paper(p_name)
-                        st.markdown(f"### 📄 Academic Breakdown: `{p_name}`")
+                        st.markdown(f"### Academic Breakdown: `{p_name}`")
                         for field, content in analysis_res.items():
-                            with st.expander(f"📌 {field}", expanded=True):
+                            with st.expander(str(field), expanded=True):
                                 st.write(content)
 
 # --------------------------------------------------------------------------
 # TAB 3: CROSS-PAPER CONFLICT DETECTOR
 # --------------------------------------------------------------------------
 with tabs[2]:
-    st.markdown("<div class='modern-header'>⚡ Cross-Paper Conflict & Controversy Detector</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-conflicts'>Compare findings</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Discovers empirical contradictions, conflicting methodological claims, and root causes of variance across papers.")
+    st.markdown("<div class='section-note'>Find contradictions, methodological trade-offs, and reasons results differ across papers.</div>", unsafe_allow_html=True)
 
     if target_papers:
-        if st.button(f"⚡ Run Cross-Paper Conflict Analysis ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+        if st.button(f"Run conflict analysis ({len(target_papers)} selected papers)", type="primary", use_container_width=True):
             with st.spinner(f"Analyzing cross-paper refutation & empirical variance for {st.session_state.active_paper}..."):
                 conflict_res = detect_cross_paper_conflicts(target_papers)
-                st.markdown(f"### 📊 Contradiction & Variance Analysis ({st.session_state.active_paper})")
+                st.markdown(f"### Contradiction & Variance Analysis ({st.session_state.active_paper})")
                 st.write(conflict_res.get("summary", ""))
 
                 for idx, c in enumerate(conflict_res.get("conflicts", [])):
@@ -594,21 +909,21 @@ with tabs[2]:
 # TAB 4: FORMULAS & QUANTITATIVE SETUP
 # --------------------------------------------------------------------------
 with tabs[3]:
-    st.markdown("<div class='modern-header'>📐 Comparative Formulas & Technical Setup</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-formulas'>Measure the details</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Extracts and compares mathematical equations (LaTeX), hardware sensor specs, parameters, and benchmark metrics across selected papers.")
+    st.markdown("<div class='section-note'>Extract equations, parameters, datasets, benchmark values, and experimental setup details.</div>", unsafe_allow_html=True)
 
     if target_papers:
-        if st.button(f"📐 Extract & Compare Quantitative Setup ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+        if st.button(f"Extract quantitative setup ({len(target_papers)} selected papers)", type="primary", use_container_width=True):
             with st.spinner("Extracting quantitative formulations and metrics across papers..."):
-                f_tabs = st.tabs([f"🧮 {p[:30]}..." for p in target_papers])
+                f_tabs = st.tabs([f"{p[:30]}..." for p in target_papers])
                 for idx, p_name in enumerate(target_papers):
                     with f_tabs[idx]:
                         f_res = extract_formulas_and_metrics(p_name)
-                        st.markdown(f"### 🧮 Quantitative Setup: `{p_name}`")
+                        st.markdown(f"### Quantitative Setup: `{p_name}`")
                         st.write(f_res.get("summary", ""))
 
-                        st.markdown("#### 📐 Extracted Equations & Formulas")
+                        st.markdown("#### Extracted Equations & Formulas")
                         eqs = f_res.get("equations", [])
                         if eqs:
                             for eq in eqs:
@@ -618,7 +933,7 @@ with tabs[3]:
                         else:
                             st.info("No formal equations found in document text.")
 
-                        st.markdown("#### ⚙️ Hardware Sensors, Parameters & Dataset Metrics")
+                        st.markdown("#### Hardware Sensors, Parameters & Dataset Metrics")
                         hp_data = f_res.get("hyperparameters_and_setup", [])
                         if hp_data:
                             st.dataframe(pd.DataFrame(hp_data), use_container_width=True)
@@ -627,33 +942,33 @@ with tabs[3]:
 # TAB 5: LITERATURE SYNTHESIS & RESEARCH GAPS
 # --------------------------------------------------------------------------
 with tabs[4]:
-    st.markdown("<div class='modern-header'>🧭 Multi-Paper Literature Review & Research Gap Matrix</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-review'>Discover new directions</div>", unsafe_allow_html=True)
     render_scope_banner()
 
     col_r1, col_r2 = st.columns(2)
     with col_r1:
-        st.markdown(f"#### 📚 Multi-Paper Literature Review Synthesis")
-        if st.button(f"Synthesize Literature Review ({len(target_papers)} Papers)", type="primary", use_container_width=True, disabled=not target_papers):
+        st.markdown("#### Literature Review Synthesis")
+        if st.button(f"Synthesize literature review ({len(target_papers)} papers)", type="primary", use_container_width=True, disabled=not target_papers):
             with st.spinner(f"Synthesizing comparative review for {len(target_papers)} paper(s)..."):
                 rev = generate_literature_review(target_papers)
                 for k, v in rev.items():
-                    with st.expander(f"📌 {k}", expanded=True):
+                    with st.expander(str(k), expanded=True):
                         st.write(v)
 
     with col_r2:
-        st.markdown(f"#### 🔬 Multi-Paper Research Gap Matrix")
-        if st.button(f"Discover Cross-Paper Research Gaps ({len(target_papers)} Papers)", type="primary", use_container_width=True, disabled=not target_papers):
+        st.markdown("#### Research Gap Matrix")
+        if st.button(f"Discover cross-paper research gaps ({len(target_papers)} papers)", type="primary", use_container_width=True, disabled=not target_papers):
             with st.spinner(f"Discovering cross-paper research gaps for {len(target_papers)} paper(s)..."):
                 gaps = detect_research_gaps(target_papers)
                 for k, v in gaps.items():
-                    with st.expander(f"🚩 {k}", expanded=True):
+                    with st.expander(str(k), expanded=True):
                         st.info(v)
 
 # --------------------------------------------------------------------------
 # TAB 6: IEEE MANUSCRIPT & LATEX STUDIO
 # --------------------------------------------------------------------------
 with tabs[5]:
-    st.markdown("<div class='modern-header'>✍️ IEEE Survey & Multi-Paper Manuscript Studio</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header heading-draft'>Write your draft</div>", unsafe_allow_html=True)
     render_scope_banner()
 
     paper_topic = st.text_input(
@@ -661,7 +976,7 @@ with tabs[5]:
         value=f"A Comparative Survey and Verifiable Analysis of {len(target_papers)} Academic Literature Frameworks"
     )
     
-    if st.button(f"📝 Generate Multi-Paper IEEE Conference Draft & LaTeX", type="primary", disabled=not target_papers, use_container_width=True):
+    if st.button("Generate multi-paper IEEE draft and LaTeX", type="primary", disabled=not target_papers, use_container_width=True):
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -684,10 +999,17 @@ with tabs[5]:
         sec = a6.get("sections", {})
         kw_str = ", ".join(a6.get("keywords", []))
 
-        st.markdown(f"## {a6.get('paper_title')}")
-        st.markdown(f"**Abstract**— {a6.get('abstract')}")
-        st.markdown(f"*Index Terms*— {kw_str}")
-        st.markdown("---")
+        st.markdown(
+            f"""
+            <div class="result-panel">
+                <span class="badge-chip">IEEE manuscript preview</span>
+                <h2>{a6.get('paper_title')}</h2>
+                <p><b>Abstract</b> - {a6.get('abstract')}</p>
+                <p><b>Index Terms</b> - {kw_str}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         for s_name, s_title in [
             ("introduction", "I. INTRODUCTION"),
@@ -705,36 +1027,31 @@ with tabs[5]:
         for r in ref_list:
             st.markdown(r)
 
-        st.markdown("### 📑 BibTeX Entries")
+        st.markdown("### BibTeX Entries")
         st.code(a6.get("bibtex_entries", ""), language="bibtex")
 
-        st.markdown("### 📄 Camera-Ready IEEE LaTeX Source Code (`.tex`)")
+        st.markdown("### IEEE LaTeX Source Code (`.tex`)")
         st.code(a6.get("latex_source", "% IEEE LaTeX source"), language="latex")
 
         col_d1, col_d2 = st.columns(2)
         with col_d1:
             formatted_refs = "\n".join(ref_list)
-            full_md = f"# {a6.get('paper_title')}\n\n**Abstract**— {a6.get('abstract')}\n\n**Keywords**— {kw_str}\n\n## I. INTRODUCTION\n{sec.get('introduction')}\n\n## II. RELATED WORK & COMPARATIVE TAXONOMY\n{sec.get('related_work')}\n\n## III. SYSTEM ARCHITECTURE & COMPARATIVE FRAMEWORK\n{sec.get('methodology')}\n\n## IV. EXPERIMENTAL COMPARISON & EMPIRICAL RESULTS\n{sec.get('experiments_and_results')}\n\n## V. DISCUSSION & CROSS-PAPER RESEARCH GAPS\n{sec.get('discussion_and_gaps')}\n\n## VI. CONCLUSION\n{sec.get('conclusion')}\n\n## REFERENCES\n{formatted_refs}\n\n## BIBTEX\n```bibtex\n{a6.get('bibtex_entries')}\n```\n"
-            st.download_button("📥 Download Markdown Draft (.md)", data=full_md, file_name="IEEE_Comparative_Manuscript.md", mime="text/markdown", use_container_width=True)
+            full_md = f"# {a6.get('paper_title')}\n\n**Abstract** - {a6.get('abstract')}\n\n**Keywords** - {kw_str}\n\n## I. INTRODUCTION\n{sec.get('introduction')}\n\n## II. RELATED WORK & COMPARATIVE TAXONOMY\n{sec.get('related_work')}\n\n## III. SYSTEM ARCHITECTURE & COMPARATIVE FRAMEWORK\n{sec.get('methodology')}\n\n## IV. EXPERIMENTAL COMPARISON & EMPIRICAL RESULTS\n{sec.get('experiments_and_results')}\n\n## V. DISCUSSION & CROSS-PAPER RESEARCH GAPS\n{sec.get('discussion_and_gaps')}\n\n## VI. CONCLUSION\n{sec.get('conclusion')}\n\n## REFERENCES\n{formatted_refs}\n\n## BIBTEX\n```bibtex\n{a6.get('bibtex_entries')}\n```\n"
+            st.download_button("Download Markdown draft (.md)", data=full_md, file_name="IEEE_Comparative_Manuscript.md", mime="text/markdown", use_container_width=True)
         with col_d2:
-            st.download_button("📥 Download Overleaf LaTeX (.tex)", data=a6.get("latex_source", ""), file_name="IEEE_Comparative_Manuscript.tex", mime="text/x-tex", use_container_width=True)
+            st.download_button("Download Overleaf LaTeX (.tex)", data=a6.get("latex_source", ""), file_name="IEEE_Comparative_Manuscript.tex", mime="text/x-tex", use_container_width=True)
 
 # ==========================================================================
 # MODERN PRODUCT FOOTER
 # ==========================================================================
 st.markdown("""
 <div class="app-footer-container">
-    <div class="footer-brand">🔬 Research Paper Co-Pilot AI</div>
-    <div class="footer-sub">Verifiable Multi-Paper Scientific AI Platform & Multi-Agent IEEE Conference Studio</div>
-    <div class="footer-pills">
-        <span class="footer-pill-item">🛡️ Verifiable Citation Grounding</span>
-        <span class="footer-pill-item">⚡ Cross-Paper Contradiction Engine</span>
-        <span class="footer-pill-item">📐 Quantitative & Formula Extractor</span>
-        <span class="footer-pill-item">✍️ Overleaf IEEEtran LaTeX Compatible</span>
-        <span class="footer-pill-item">🎓 5th Sem Capstone Project</span>
+    <div class="footer-row">
+        <div>
+            <div class="footer-brand">Research Co-Pilot AI</div>
+            <div class="footer-sub">Read clearly. Think deeply. Write confidently.</div>
+        </div>
     </div>
-    <div class="footer-copy">
-        © 2026 Research Co-Pilot AI • IEEE Author Center Standards Compliant • Built for Academic Rigor & Publication Excellence
-    </div>
+    <div class="footer-copy clean-footer-copy">Your academic reading workspace</div>
 </div>
 """, unsafe_allow_html=True)

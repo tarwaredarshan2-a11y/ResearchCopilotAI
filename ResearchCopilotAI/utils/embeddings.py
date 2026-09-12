@@ -1,4 +1,4 @@
-﻿"""
+"""
 embeddings.py
 -------------
 Manages the HuggingFace embedding model and the Chroma vector store.
@@ -41,13 +41,26 @@ def add_documents_to_vector_store(documents: List[Document]) -> int:
     vs.add_documents(documents)
     return len(documents)
 
-def delete_paper_from_vector_store(paper_name: str) -> None:
-    """Remove paper chunks from ChromaDB."""
+def delete_paper_from_vector_store(paper_name: str) -> bool:
+    """Remove paper chunks from ChromaDB and delete physical PDF file from disk."""
     try:
         vs = get_vector_store()
         vs.delete(where={"paper_name": paper_name})
     except Exception as e:
         print(f"[Embeddings] Delete warning: {e}")
+
+    # Delete physical PDF file from uploads directory
+    file_deleted = False
+    if os.path.exists(UPLOAD_DIR):
+        file_path = os.path.join(UPLOAD_DIR, paper_name)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                file_deleted = True
+            except Exception as e:
+                print(f"[Embeddings] File deletion warning: {e}")
+    return file_deleted
+
 
 def get_all_paper_names() -> List[str]:
     """
