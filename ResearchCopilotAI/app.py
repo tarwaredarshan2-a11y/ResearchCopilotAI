@@ -39,7 +39,7 @@ from utils.retriever import retrieve_all_chunks_for_paper
 # PAGE CONFIGURATION & MODERN MINIMALIST DESIGN SYSTEM
 # ==========================================================================
 st.set_page_config(
-    page_title=f"{APP_TITLE} | Verifiable Scientific Platform",
+    page_title=f"{APP_TITLE} | Verifiable Multi-Paper AI Suite",
     page_icon=APP_ICON,
     layout="wide",
     initial_sidebar_state="expanded",
@@ -264,30 +264,24 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "last_pipeline_result" not in st.session_state:
     st.session_state.last_pipeline_result = None
-if "active_paper" not in st.session_state:
-    st.session_state.active_paper = None
 
 # Fetch paper list from database/uploads
 paper_names = get_all_paper_names()
 
-# Ensure active_paper session state is valid
-if paper_names and (st.session_state.active_paper not in paper_names and st.session_state.active_paper != "All Papers in Repository"):
-    st.session_state.active_paper = paper_names[0]
-
 # ==========================================================================
-# SIDEBAR REPOSITORY & PAPER SELECTION
+# SIDEBAR REPOSITORY & MULTI-PAPER SELECTION CONTROLS
 # ==========================================================================
 with st.sidebar:
     st.markdown(f"## {APP_ICON} **Research Co-Pilot**")
-    st.markdown("<div style='font-size: 13px; color: #7174B9; font-weight: 600;'>Verifiable Scientific AI Platform</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 13px; color: #7174B9; font-weight: 600;'>Verifiable Multi-Paper AI Suite</div>", unsafe_allow_html=True)
     st.markdown("---")
 
-    st.markdown("### 📤 Upload Research Paper")
+    st.markdown("### 📤 Upload Research Papers")
     uploaded_files = st.file_uploader(
         "Upload PDF Paper(s)",
         type=["pdf"],
         accept_multiple_files=True,
-        help="Upload academic papers to analyze text, layout, formulas, and references."
+        help="Upload academic papers to compare layout, methodology, formulas, and empirical results side-by-side."
     )
     
     if uploaded_files:
@@ -304,63 +298,79 @@ with st.sidebar:
                     last_name = parsed_doc["paper_name"]
                 
                 hybrid_retriever.sync_bm25_from_vector_store()
-                if last_name:
-                    st.session_state.active_paper = last_name
-                st.success(f"Indexed & selected '{st.session_state.active_paper}'!")
+                st.success("Indexed uploaded paper(s) successfully!")
                 st.rerun()
 
     st.markdown("---")
-    st.markdown("### 📄 Active Document Selector")
+    st.markdown("### 📄 Comparative Scope Controls")
     if paper_names:
-        options = ["All Papers in Repository"] + paper_names
-        current_idx = options.index(st.session_state.active_paper) if st.session_state.active_paper in options else 0
-        selected_paper_option = st.selectbox(
-            "Select Active Paper:",
-            options,
-            index=current_idx,
-            help="All analysis, Q&A, and drafting will be strictly scoped to your selected paper."
+        scope_mode = st.radio(
+            "Select Comparative Mode:",
+            ["📊 Compare Multiple Papers (Multi-Paper Matrix)", "🎯 Single Paper Deep-Dive"],
+            index=0 if len(paper_names) > 1 else 1,
+            help="Choose whether to compare multiple research papers side-by-side or focus on 1 paper."
         )
-        st.session_state.active_paper = selected_paper_option
-        selected_filter = None if selected_paper_option == "All Papers in Repository" else selected_paper_option
+
+        if scope_mode == "📊 Compare Multiple Papers (Multi-Paper Matrix)":
+            selected_papers = st.multiselect(
+                "Select Papers to Compare:",
+                options=paper_names,
+                default=paper_names,
+                help="Select 2 or more research papers to compare side-by-side."
+            )
+            if not selected_papers:
+                selected_papers = paper_names
+            target_papers = selected_papers
+            st.session_state.active_paper = f"Multi-Paper Matrix ({len(target_papers)} Papers Selected)"
+            selected_filter = None
+        else:
+            selected_single = st.selectbox(
+                "Select Target Paper:",
+                options=paper_names,
+                index=0,
+                help="Analysis will focus strictly on this single document."
+            )
+            target_papers = [selected_single]
+            st.session_state.active_paper = selected_single
+            selected_filter = selected_single
     else:
+        target_papers = []
         selected_filter = None
-        st.info("No papers added yet. Upload a PDF above to begin.")
+        st.info("No papers added yet. Upload PDF paper(s) above to begin.")
 
     st.markdown("---")
     st.markdown("<div style='font-size: 11.5px; color: #7174B9; text-align: center;'>IEEE Author Center Standards Compliant<br>© 2026 Research Co-Pilot AI</div>", unsafe_allow_html=True)
 
-# Helper function to render active paper banner
+# Helper function to render scope banner
 def render_scope_banner():
-    if paper_names and st.session_state.active_paper:
-        target_display = st.session_state.active_paper
-        if target_display != "All Papers in Repository":
-            chunk_count = len(retrieve_all_chunks_for_paper(target_display))
+    if paper_names and target_papers:
+        if len(target_papers) > 1:
             st.markdown(
                 f"<div class='scope-pill'>"
-                f"<span>🎯 Currently Analyzing Active Paper: <b>{target_display}</b></span>"
-                f"<span style='font-size: 12.5px; color: #2F3A6E;'>{chunk_count} Passages Indexed</span>"
+                f"<span>📊 Comparing Multi-Paper Scope: <b>{', '.join([p[:35] + ('...' if len(p)>35 else '') for p in target_papers])}</b></span>"
+                f"<span style='font-size: 12.5px; color: #2F3A6E;'>{len(target_papers)} Papers Selected</span>"
                 f"</div>",
                 unsafe_allow_html=True
             )
         else:
+            p_name = target_papers[0]
+            chunk_count = len(retrieve_all_chunks_for_paper(p_name))
             st.markdown(
                 f"<div class='scope-pill'>"
-                f"<span>🎯 Currently Analyzing Scope: <b>All {len(paper_names)} Papers in Repository</b></span>"
+                f"<span>🎯 Currently Analyzing Active Paper: <b>{p_name}</b></span>"
+                f"<span style='font-size: 12.5px; color: #2F3A6E;'>{chunk_count} Passages Indexed</span>"
                 f"</div>",
                 unsafe_allow_html=True
             )
     else:
-        st.warning("⚠️ No paper loaded in repository. Please upload a PDF research paper using the sidebar to begin analysis.")
-
-# Target papers list for active scope across all tools
-target_papers = [selected_filter] if selected_filter else paper_names
+        st.warning("⚠️ No paper loaded in repository. Please upload PDF research paper(s) using the sidebar to begin analysis.")
 
 # Top Hero Header Banner
 st.markdown("""
 <div class="hero-banner-container">
     <div class="hero-pill-badge">✨ Publication-Ready Scientific Suite</div>
     <h1>🔬 Research Paper Co-Pilot</h1>
-    <p>Verifiable Multimodal Scientific Assistant & IEEE Conference Manuscript Studio</p>
+    <p>Verifiable Multimodal Scientific Assistant & Multi-Paper IEEE Conference Studio</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -382,7 +392,7 @@ tabs = st.tabs([
 with tabs[0]:
     st.markdown("<div class='modern-header'>💬 Grounded AI Research Assistant</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.caption("Ask continuous follow-up questions about the active document. All responses feature verified source citations.")
+    st.caption("Ask continuous follow-up questions comparing active papers. All responses feature verified source citations.")
 
     # Render Chat History Feed
     for entry in st.session_state.chat_history:
@@ -398,23 +408,28 @@ with tabs[0]:
                     st.markdown(f"<div class='citation-quote'>\"{src.get('text')[:280]}...\"</div>", unsafe_allow_html=True)
 
     # Continuous Chat Input
-    if prompt := st.chat_input("Ask a question about the active paper...", disabled=not paper_names):
+    if prompt := st.chat_input("Ask a question comparing your selected papers...", disabled=not paper_names):
         with st.chat_message("user"):
             st.markdown(f"**Question ({st.session_state.active_paper}):** {prompt}")
 
         with st.chat_message("assistant"):
-            with st.spinner(f"Retrieving passages from {st.session_state.active_paper}..."):
-                retrieved_chunks = hybrid_retriever.retrieve(
-                    query=prompt,
-                    top_k=5,
-                    paper_name=selected_filter
-                )
+            with st.spinner(f"Retrieving passages across {len(target_papers)} paper(s)..."):
+                # Retrieve top chunks for each target paper
+                retrieved_chunks = []
+                for p_target in target_papers:
+                    retrieved_chunks.extend(hybrid_retriever.retrieve(
+                        query=prompt,
+                        top_k=3,
+                        paper_name=p_target
+                    ))
+                
                 context_str = "\n\n".join([
                     f"[Source: {c.get('metadata', {}).get('paper_name')} | Page: {c.get('metadata', {}).get('page_number')}]\n{c.get('text')}"
                     for c in retrieved_chunks
                 ])
 
-                chat_prompt = f"""You are an expert academic research assistant. Answer the user's question using ONLY the provided literature context for '{st.session_state.active_paper}'.
+                chat_prompt = f"""You are an expert academic research assistant comparing research literature.
+Answer the user's question using ONLY the provided literature context for the selected papers: {', '.join(target_papers)}.
 Include bracketed citations [PaperName, p.X] for every key fact.
 
 Literature Context:
@@ -446,29 +461,29 @@ with tabs[1]:
     st.markdown("<div class='modern-header'>🔍 Document Analysis Teardown</div>", unsafe_allow_html=True)
     render_scope_banner()
 
-    if paper_names and selected_filter:
-        if st.button(f"📊 Generate Teardown for '{selected_filter}'", type="primary", use_container_width=True):
-            with st.spinner(f"Extracting structured sections for {selected_filter}..."):
-                analysis_res = analyze_paper(selected_filter)
-                st.markdown(f"### 📄 Academic Breakdown: `{selected_filter}`")
-                for field, content in analysis_res.items():
-                    with st.expander(f"📌 {field}", expanded=True):
-                        st.write(content)
-    elif paper_names and not selected_filter:
-        st.info("Select a specific paper from the sidebar dropdown to run a single-document analysis teardown.")
+    if target_papers:
+        if st.button(f"📊 Generate Teardown Breakdown ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+            with st.spinner("Extracting structured academic breakdowns for selected papers..."):
+                t_cols = st.tabs([f"📄 {p[:30]}..." for p in target_papers])
+                for idx, p_name in enumerate(target_papers):
+                    with t_cols[idx]:
+                        analysis_res = analyze_paper(p_name)
+                        st.markdown(f"### 📄 Academic Breakdown: `{p_name}`")
+                        for field, content in analysis_res.items():
+                            with st.expander(f"📌 {field}", expanded=True):
+                                st.write(content)
 
 # --------------------------------------------------------------------------
 # TAB 3: CROSS-PAPER CONFLICT DETECTOR
 # --------------------------------------------------------------------------
 with tabs[2]:
-    st.markdown("<div class='modern-header'>⚡ Cross-Paper & Intra-Paper Conflict Detector</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header'>⚡ Cross-Paper Conflict & Controversy Detector</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Identifies empirical contradictions, conflicting methodological assumptions, and internal trade-offs for active paper(s).")
+    st.write("Discovers empirical contradictions, conflicting methodological claims, and root causes of variance across papers.")
 
-    if paper_names:
-        btn_label = f"⚡ Run Conflict Analysis for '{st.session_state.active_paper}'" if selected_filter else "⚡ Run Cross-Paper Conflict Analysis (All Papers)"
-        if st.button(btn_label, type="primary", use_container_width=True):
-            with st.spinner(f"Analyzing literature refutation & empirical variance for {st.session_state.active_paper}..."):
+    if target_papers:
+        if st.button(f"⚡ Run Cross-Paper Conflict Analysis ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+            with st.spinner(f"Analyzing cross-paper refutation & empirical variance for {st.session_state.active_paper}..."):
                 conflict_res = detect_cross_paper_conflicts(target_papers)
                 st.markdown(f"### 📊 Contradiction & Variance Analysis ({st.session_state.active_paper})")
                 st.write(conflict_res.get("summary", ""))
@@ -489,55 +504,56 @@ with tabs[2]:
 # TAB 4: FORMULAS & QUANTITATIVE SETUP
 # --------------------------------------------------------------------------
 with tabs[3]:
-    st.markdown("<div class='modern-header'>📐 Formulas & Technical Setup</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header'>📐 Comparative Formulas & Technical Setup</div>", unsafe_allow_html=True)
     render_scope_banner()
-    st.write("Extracts mathematical equations (LaTeX), hardware sensor specs, hyperparameter setups, and numerical metrics.")
+    st.write("Extracts and compares mathematical equations (LaTeX), hardware sensor specs, parameters, and benchmark metrics across selected papers.")
 
-    if paper_names and selected_filter:
-        if st.button(f"📐 Extract Formulas for '{selected_filter}'", type="primary", use_container_width=True):
-            with st.spinner(f"Extracting mathematical equations & quantitative metrics for {selected_filter}..."):
-                f_res = extract_formulas_and_metrics(selected_filter)
-                st.markdown(f"### 🧮 Mathematical & Technical Setup: `{selected_filter}`")
-                st.write(f_res.get("summary", ""))
+    if target_papers:
+        if st.button(f"📐 Extract & Compare Quantitative Setup ({len(target_papers)} Selected Papers)", type="primary", use_container_width=True):
+            with st.spinner("Extracting quantitative formulations and metrics across papers..."):
+                f_tabs = st.tabs([f"🧮 {p[:30]}..." for p in target_papers])
+                for idx, p_name in enumerate(target_papers):
+                    with f_tabs[idx]:
+                        f_res = extract_formulas_and_metrics(p_name)
+                        st.markdown(f"### 🧮 Quantitative Setup: `{p_name}`")
+                        st.write(f_res.get("summary", ""))
 
-                st.markdown("#### 📐 Extracted Equations & Formulas")
-                eqs = f_res.get("equations", [])
-                if eqs:
-                    for eq in eqs:
-                        with st.expander(f"Equation: {eq.get('name')}", expanded=True):
-                            st.latex(eq.get("latex", ""))
-                            st.caption(eq.get("description", ""))
-                else:
-                    st.info("No formal LaTeX equations found in document text.")
+                        st.markdown("#### 📐 Extracted Equations & Formulas")
+                        eqs = f_res.get("equations", [])
+                        if eqs:
+                            for eq in eqs:
+                                with st.expander(f"Equation: {eq.get('name')}", expanded=True):
+                                    st.latex(eq.get("latex", ""))
+                                    st.caption(eq.get("description", ""))
+                        else:
+                            st.info("No formal equations found in document text.")
 
-                st.markdown("#### ⚙️ Hardware Sensors, Parameters & Dataset Metrics")
-                hp_data = f_res.get("hyperparameters_and_setup", [])
-                if hp_data:
-                    st.dataframe(pd.DataFrame(hp_data), use_container_width=True)
-    elif paper_names and not selected_filter:
-        st.info("Select a specific paper from the sidebar dropdown to extract formulas and technical metrics.")
+                        st.markdown("#### ⚙️ Hardware Sensors, Parameters & Dataset Metrics")
+                        hp_data = f_res.get("hyperparameters_and_setup", [])
+                        if hp_data:
+                            st.dataframe(pd.DataFrame(hp_data), use_container_width=True)
 
 # --------------------------------------------------------------------------
 # TAB 5: LITERATURE SYNTHESIS & RESEARCH GAPS
 # --------------------------------------------------------------------------
 with tabs[4]:
-    st.markdown("<div class='modern-header'>🧭 Literature Review & Research Gap Matrix</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header'>🧭 Multi-Paper Literature Review & Research Gap Matrix</div>", unsafe_allow_html=True)
     render_scope_banner()
 
     col_r1, col_r2 = st.columns(2)
     with col_r1:
-        st.markdown(f"#### 📚 Literature Review Synthesis ({st.session_state.active_paper})")
-        if st.button(f"Synthesize Review for '{st.session_state.active_paper}'", type="primary", use_container_width=True, disabled=not paper_names):
-            with st.spinner(f"Synthesizing literature review for {st.session_state.active_paper}..."):
+        st.markdown(f"#### 📚 Multi-Paper Literature Review Synthesis")
+        if st.button(f"Synthesize Literature Review ({len(target_papers)} Papers)", type="primary", use_container_width=True, disabled=not target_papers):
+            with st.spinner(f"Synthesizing comparative review for {len(target_papers)} paper(s)..."):
                 rev = generate_literature_review(target_papers)
                 for k, v in rev.items():
                     with st.expander(f"📌 {k}", expanded=True):
                         st.write(v)
 
     with col_r2:
-        st.markdown(f"#### 🔬 Research Gap Matrix ({st.session_state.active_paper})")
-        if st.button(f"Discover Research Gaps for '{st.session_state.active_paper}'", type="primary", use_container_width=True, disabled=not paper_names):
-            with st.spinner(f"Analyzing limitations and open trajectories for {st.session_state.active_paper}..."):
+        st.markdown(f"#### 🔬 Multi-Paper Research Gap Matrix")
+        if st.button(f"Discover Cross-Paper Research Gaps ({len(target_papers)} Papers)", type="primary", use_container_width=True, disabled=not target_papers):
+            with st.spinner(f"Discovering cross-paper research gaps for {len(target_papers)} paper(s)..."):
                 gaps = detect_research_gaps(target_papers)
                 for k, v in gaps.items():
                     with st.expander(f"🚩 {k}", expanded=True):
@@ -547,15 +563,15 @@ with tabs[4]:
 # TAB 6: IEEE MANUSCRIPT & LATEX STUDIO
 # --------------------------------------------------------------------------
 with tabs[5]:
-    st.markdown("<div class='modern-header'>✍️ IEEE Manuscript & LaTeX Studio</div>", unsafe_allow_html=True)
+    st.markdown("<div class='modern-header'>✍️ IEEE Survey & Multi-Paper Manuscript Studio</div>", unsafe_allow_html=True)
     render_scope_banner()
 
     paper_topic = st.text_input(
         "IEEE Paper Focus / Title:",
-        value=f"A Verifiable Multi-Agent Framework for Scientific Synthesis of {selected_filter if selected_filter else 'Academic Literature'}"
+        value=f"A Comparative Survey and Verifiable Analysis of {len(target_papers)} Academic Literature Frameworks"
     )
     
-    if st.button(f"📝 Generate IEEE Conference Draft & LaTeX for '{st.session_state.active_paper}'", type="primary", disabled=not paper_names, use_container_width=True):
+    if st.button(f"📝 Generate Multi-Paper IEEE Conference Draft & LaTeX", type="primary", disabled=not target_papers, use_container_width=True):
         progress_bar = st.progress(0)
         status_text = st.empty()
 
@@ -563,14 +579,14 @@ with tabs[5]:
             status_text.markdown(f"**{msg}**")
             progress_bar.progress(pct)
 
-        with st.spinner("Orchestrating 6-agent pipeline for IEEE conference paper synthesis..."):
+        with st.spinner(f"Orchestrating 6-agent pipeline for IEEE manuscript synthesis across {len(target_papers)} paper(s)..."):
             pipe_res = orchestrator.run_full_pipeline(
                 research_query=paper_topic,
                 selected_paper=selected_filter,
                 progress_callback=update_progress
             )
             st.session_state.last_pipeline_result = pipe_res
-            st.success("IEEE Conference Draft & LaTeX generated successfully!")
+            st.success("IEEE Comparative Conference Draft & LaTeX generated successfully!")
 
     res = st.session_state.last_pipeline_result
     if res and "agent6_output" in res:
@@ -585,10 +601,10 @@ with tabs[5]:
 
         for s_name, s_title in [
             ("introduction", "I. INTRODUCTION"),
-            ("related_work", "II. RELATED WORK"),
-            ("methodology", "III. METHODOLOGY & SYSTEM ARCHITECTURE"),
-            ("experiments_and_results", "IV. EXPERIMENTAL RESULTS & VERIFICATION"),
-            ("discussion_and_gaps", "V. DISCUSSION & RESEARCH GAPS"),
+            ("related_work", "II. RELATED WORK & COMPARATIVE TAXONOMY"),
+            ("methodology", "III. SYSTEM ARCHITECTURE & COMPARATIVE FRAMEWORK"),
+            ("experiments_and_results", "IV. EXPERIMENTAL COMPARISON & EMPIRICAL RESULTS"),
+            ("discussion_and_gaps", "V. DISCUSSION & CROSS-PAPER RESEARCH GAPS"),
             ("conclusion", "VI. CONCLUSION"),
         ]:
             st.markdown(f"### {s_title}")
@@ -608,7 +624,7 @@ with tabs[5]:
         col_d1, col_d2 = st.columns(2)
         with col_d1:
             formatted_refs = "\n".join(ref_list)
-            full_md = f"# {a6.get('paper_title')}\n\n**Abstract**— {a6.get('abstract')}\n\n**Keywords**— {kw_str}\n\n## I. INTRODUCTION\n{sec.get('introduction')}\n\n## II. RELATED WORK\n{sec.get('related_work')}\n\n## III. METHODOLOGY & SYSTEM ARCHITECTURE\n{sec.get('methodology')}\n\n## IV. EXPERIMENTAL RESULTS & VERIFICATION\n{sec.get('experiments_and_results')}\n\n## V. DISCUSSION & RESEARCH GAPS\n{sec.get('discussion_and_gaps')}\n\n## VI. CONCLUSION\n{sec.get('conclusion')}\n\n## REFERENCES\n{formatted_refs}\n\n## BIBTEX\n```bibtex\n{a6.get('bibtex_entries')}\n```\n"
-            st.download_button("📥 Download Markdown Draft (.md)", data=full_md, file_name="IEEE_Manuscript_Draft.md", mime="text/markdown", use_container_width=True)
+            full_md = f"# {a6.get('paper_title')}\n\n**Abstract**— {a6.get('abstract')}\n\n**Keywords**— {kw_str}\n\n## I. INTRODUCTION\n{sec.get('introduction')}\n\n## II. RELATED WORK & COMPARATIVE TAXONOMY\n{sec.get('related_work')}\n\n## III. SYSTEM ARCHITECTURE & COMPARATIVE FRAMEWORK\n{sec.get('methodology')}\n\n## IV. EXPERIMENTAL COMPARISON & EMPIRICAL RESULTS\n{sec.get('experiments_and_results')}\n\n## V. DISCUSSION & CROSS-PAPER RESEARCH GAPS\n{sec.get('discussion_and_gaps')}\n\n## VI. CONCLUSION\n{sec.get('conclusion')}\n\n## REFERENCES\n{formatted_refs}\n\n## BIBTEX\n```bibtex\n{a6.get('bibtex_entries')}\n```\n"
+            st.download_button("📥 Download Markdown Draft (.md)", data=full_md, file_name="IEEE_Comparative_Manuscript.md", mime="text/markdown", use_container_width=True)
         with col_d2:
-            st.download_button("📥 Download Overleaf LaTeX (.tex)", data=a6.get("latex_source", ""), file_name="IEEE_Manuscript.tex", mime="text/x-tex", use_container_width=True)
+            st.download_button("📥 Download Overleaf LaTeX (.tex)", data=a6.get("latex_source", ""), file_name="IEEE_Comparative_Manuscript.tex", mime="text/x-tex", use_container_width=True)
