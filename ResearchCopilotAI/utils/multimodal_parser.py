@@ -1,4 +1,4 @@
-﻿"""
+"""
 multimodal_parser.py
 --------------------
 Multimodal Ingestion & Academic Document Parser for Research Paper Co-Pilot.
@@ -98,7 +98,9 @@ def parse_multimodal_pdf(pdf_path: str) -> Dict[str, Any]:
         "is_scanned": len(combined_text) < (total_pages * 50)
     }
 
-def chunk_parsed_document(parsed_doc: Dict[str, Any], chunk_size: int = 900, chunk_overlap: int = 150) -> List[Dict[str, Any]]:
+from config import CHUNK_SIZE, CHUNK_OVERLAP
+
+def chunk_parsed_document(parsed_doc: Dict[str, Any], chunk_size: int = CHUNK_SIZE, chunk_overlap: int = CHUNK_OVERLAP) -> List[Dict[str, Any]]:
     """
     Split parsed document into chunks while preserving page number,
     paper name, and section metadata for fine-grained citation tracking.

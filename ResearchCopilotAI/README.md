@@ -14,7 +14,7 @@
 
 **Research Paper Co-Pilot AI** is a human-in-the-loop research assistant and publication helper developed for 5th-semester engineering capstone evaluation and academic literature analysis.
 
-The system assists researchers in ingesting, comparing, and synthesizing academic PDF documents. It addresses key challenges in automated literature review—such as ungrounded statements, vague citation attributions, and manual synthesis bottlenecks—by combining **layout-aware PDF text and metadata extraction**, **hybrid dense-sparse retrieval (Dense ChromaDB + Custom Lexical BM25)**, **page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
+The system assists researchers in ingesting, comparing, and synthesizing academic PDF documents. It addresses key challenges in automated literature review—such as ungrounded statements, vague citation attributions, and manual synthesis bottlenecks—by combining **layout-aware PDF text and metadata extraction (`PyMuPDF`)**, **hybrid dense-sparse retrieval (Dense ChromaDB + Custom Lexical BM25)**, **page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
 
 ---
 
@@ -23,9 +23,9 @@ The system assists researchers in ingesting, comparing, and synthesizing academi
 - **💬 Grounded AI Research Assistant**: Multi-turn continuous chat engine that answers questions using retrieved paper passages with bracketed page-level citations (`[PaperName, p.X]`).
 - **🔍 Document Analysis Teardown**: Extracts structured academic breakdowns (Abstract, Problem Statement, Methodology, Empirical Datasets, Key Findings, Limitations).
 - **⚡ Cross-Paper & Intra-Paper Conflict Detector**: Identifies empirical contradictions, conflicting methodological assumptions, and internal trade-offs across single or multiple papers.
-- **📐 Quantitative Setup & Formula Extractor**: Extracts mathematical formulations, converts plain text equations into formatted $\LaTeX$ blocks, and parses hardware sensor parameters, sampling frequencies, and dataset metrics.
+- **📐 Quantitative Setup & Formula Extractor**: Extracts mathematical expressions and generates $\LaTeX$ representations for review, parsing hardware sensor parameters, sampling frequencies, and dataset metrics.
 - **🧭 Literature Review & Research Gap Matrix**: Generates comparative literature review tables (`Paper | Methodology | Dataset | Key Results`) and identifies open research trajectories.
-- **✍️ IEEE Manuscript & Overleaf LaTeX Studio**: Synthesizes structured IEEE conference draft sections and ready-to-compile **IEEEtran Overleaf LaTeX (`.tex`)** source code.
+- **✍️ IEEE Manuscript & Overleaf LaTeX Studio**: Synthesizes structured IEEE conference draft sections and **IEEEtran-formatted LaTeX draft source requiring author and citation review**.
 - **🗑️ Permanent Paper Storage Manager**: Allows users to select and permanently delete uploaded PDFs from disk storage and the Chroma vector database.
 
 ---
@@ -50,7 +50,7 @@ The system assists researchers in ingesting, comparing, and synthesizing academi
                                              ▼
                      ┌───────────────────────────────────────────────┐
                      │   Agent 3: Evidence & Citation Verifier       │
-                     │  (Grounds claims to exact page quotes [p.X])  │
+                     │  (Grounds claims to page-level text [p.X])    │
                      └───────────────────────┬───────────────────────┘
                                              │
                                              ▼
@@ -68,17 +68,17 @@ The system assists researchers in ingesting, comparing, and synthesizing academi
                                              ▼
                      ┌───────────────────────────────────────────────┐
                      │     Agent 6: IEEE Section & LaTeX Drafter     │
-                     │  (Generates I-VI IEEE sections & Overleaf .tex)│
+                     │  (Generates I-VI IEEE sections & LaTeX draft) │
                      └───────────────────────────────────────────────┘
 ```
 
 ### Agent Roles & Specifications:
 1. **Agent 1: Query Decomposer (`query_decomposer.py`)**: Deconstructs high-level queries into specific sub-questions and keyword search facets.
 2. **Agent 2: Hybrid Literature Retriever (`lit_retriever.py`)**: Executes dense vector similarity search (`BAAI/bge-small-en-v1.5`) and custom sparse lexical search (BM25) with Reciprocal Rank Fusion.
-3. **Agent 3: Evidence & Citation Verifier (`citation_verifier.py`)**: Binds generated statements to exact page-level text snippets and document provenance.
+3. **Agent 3: Evidence & Citation Verifier (`citation_verifier.py`)**: Associates generated evidence statements with retrieved page-level source context.
 4. **Agent 4: LLM-Assisted Claim Verifier (`claim_verifier.py`)**: Verifies candidate assertions against retrieved literature premises, categorizing claims into `ENTAILED`, `NEUTRAL`, or `CONTRADICTED`.
 5. **Agent 5: Research-Gap Synthesizer (`gap_synthesizer.py`)**: Discovers methodological blindspots, missing evaluation benchmarks, and open research directions.
-6. **Agent 6: IEEE Section & LaTeX Drafter (`ieee_drafter.py`)**: Formats syntheses into standardized IEEE conference paper sections, bracketed citations `[1]`, BibTeX entries, and Overleaf `.tex` source code.
+6. **Agent 6: IEEE Section & LaTeX Drafter (`ieee_drafter.py`)**: Formats syntheses into standardized IEEE conference paper sections, bracketed citations `[1]`, BibTeX entries, and draft LaTeX source code.
 
 ---
 
@@ -94,10 +94,7 @@ Where:
 - $w_{\text{sparse}} = 0.35$ (Sparse lexical BM25 weight)
 
 ### B. Balanced Passage Sampling
-To prevent a single long document from dominating LLM context windows during multi-paper comparison, passages are sampled evenly across three document regions:
-- **Beginning**: Abstract & Introduction ($0\% - 30\%$)
-- **Middle**: Methodology & System Design ($30\% - 70\%$)
-- **End**: Experimental Results & Discussion ($70\% - 100\%$)
+Chunks are selected at evenly spaced positions across each document to reduce the dominance of long papers in the context window during multi-paper comparative analysis.
 
 ---
 
@@ -127,7 +124,7 @@ The evaluation workflow will measure:
 | **UI Framework** | `Streamlit >= 1.36.0` | `app.py` |
 | **LLM Model** | `gemini-2.5-flash` | `config.py` |
 | **Embedding Model** | `BAAI/bge-small-en-v1.5` | `config.py` |
-| **PDF Parser** | `PyMuPDF` (`fitz`), `pdfplumber`, `PyPDF2` | `utils/multimodal_parser.py` |
+| **PDF Parser** | `PyMuPDF (fitz)` | `utils/multimodal_parser.py` |
 | **Vector Database** | ChromaDB (`langchain-chroma`) | `utils/embeddings.py` |
 | **Chunk Size & Overlap** | $900$ characters / $150$ character overlap | `config.py` |
 | **RRF Weights** | $w_{\text{dense}} = 0.65$, $w_{\text{sparse}} = 0.35$, $k = 60$ | `config.py` |
@@ -198,7 +195,7 @@ ResearchCopilotAI/
     ├── research_gap.py          # Cross-paper research gap detector
     ├── orchestrator.py          # 6-Agent pipeline orchestrator
     ├── evaluation_suite.py      # Metric evaluation runner
-    └── agents/                  # Autonomous Agent implementations
+    └── agents/                  # Agent implementations
         ├── base_agent.py        # Base Agent interface
         ├── query_decomposer.py  # Agent 1: Query Decomposition
         ├── lit_retriever.py     # Agent 2: Literature Retrieval
@@ -212,5 +209,5 @@ ResearchCopilotAI/
 
 ## 📜 10. License & Academic Attribution
 
-Developed for **5th Semester Engineering Capstone Project** and **IEEE Conference Publication Synthesis**.
-© 2026 Research Co-Pilot AI • All Rights Reserved.
+This project is an academic capstone prototype. See the repository owner for usage and redistribution permissions.
+© 2026 Research Co-Pilot AI.
