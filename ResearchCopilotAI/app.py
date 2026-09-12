@@ -77,9 +77,9 @@ st.markdown("""
         position: relative;
         background: linear-gradient(135deg, #2F3A6E 0%, #474E86 45%, #7174B9 100%);
         border-radius: 24px;
-        padding: 32px 38px 48px 38px;
+        padding: 34px 40px 50px 40px;
         color: #FFFFFF;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         box-shadow: 0 16px 36px rgba(47, 58, 110, 0.18);
         overflow: hidden;
     }
@@ -95,7 +95,7 @@ st.markdown("""
     }
     .hero-banner-container h1 {
         color: #FFFFFF !important;
-        font-size: 30px;
+        font-size: 32px;
         font-weight: 800;
         margin: 0 0 6px 0;
         letter-spacing: -0.025em;
@@ -103,14 +103,14 @@ st.markdown("""
     }
     .hero-banner-container p {
         color: #C0CDEC !important;
-        font-size: 14.5px;
+        font-size: 15px;
         margin: 0;
         font-weight: 500;
-        max-width: 680px;
-        line-height: 1.5;
+        max-width: 720px;
+        line-height: 1.55;
     }
 
-    /* Floating Pill Header Badge */
+    /* Floating Pill Header Badges */
     .hero-pill-badge {
         display: inline-flex;
         align-items: center;
@@ -124,6 +124,7 @@ st.markdown("""
         font-size: 12px;
         font-weight: 700;
         margin-bottom: 12px;
+        margin-right: 8px;
         letter-spacing: 0.02em;
     }
 
@@ -241,6 +242,48 @@ st.markdown("""
         display: none !important;
     }
 
+    /* Table Styling */
+    .stApp table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 16px 0 !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        border: 1px solid #ABC4E6 !important;
+    }
+    .stApp th {
+        background: linear-gradient(135deg, #2F3A6E 0%, #474E86 100%) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        padding: 12px 16px !important;
+        text-align: left !important;
+    }
+    .stApp td {
+        background-color: #FFFFFF !important;
+        color: #302F38 !important;
+        padding: 10px 16px !important;
+        border-bottom: 1px solid #EBF1FA !important;
+        font-size: 13.5px !important;
+    }
+    .stApp tr:nth-child(even) td {
+        background-color: #F8FAFC !important;
+    }
+
+    /* Expander Styling */
+    div[data-testid="stExpander"] {
+        background-color: #FFFFFF !important;
+        border: 1px solid #ABC4E6 !important;
+        border-radius: 16px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 4px 12px rgba(47, 58, 110, 0.03) !important;
+        overflow: hidden !important;
+    }
+    div[data-testid="stExpander"] summary {
+        font-weight: 700 !important;
+        color: #2F3A6E !important;
+        padding: 14px 18px !important;
+    }
+
     /* Input & Button Overrides */
     div.stButton > button[kind="primary"], div.stButton > button {
         background: linear-gradient(135deg, #2F3A6E 0%, #474E86 100%) !important;
@@ -255,6 +298,51 @@ st.markdown("""
     div.stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 22px rgba(47, 58, 110, 0.3) !important;
+    }
+
+    /* Modern Footer Container */
+    .app-footer-container {
+        background: linear-gradient(135deg, #2F3A6E 0%, #1E2548 100%);
+        border-radius: 24px;
+        padding: 36px 42px;
+        color: #FFFFFF;
+        margin-top: 48px;
+        margin-bottom: 24px;
+        box-shadow: 0 16px 36px rgba(47, 58, 110, 0.2);
+        text-align: center;
+    }
+    .footer-brand {
+        font-size: 20px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 6px;
+    }
+    .footer-sub {
+        font-size: 13.5px;
+        color: #C0CDEC;
+        margin-bottom: 20px;
+    }
+    .footer-pills {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+    .footer-pill-item {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #FFFFFF;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .footer-copy {
+        font-size: 12px;
+        color: #ABC4E6;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-top: 18px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -368,9 +456,12 @@ def render_scope_banner():
 # Top Hero Header Banner
 st.markdown("""
 <div class="hero-banner-container">
-    <div class="hero-pill-badge">✨ Publication-Ready Scientific Suite</div>
-    <h1>🔬 Research Paper Co-Pilot</h1>
-    <p>Verifiable Multimodal Scientific Assistant & Multi-Paper IEEE Conference Studio</p>
+    <div>
+        <span class="hero-pill-badge">✨ Publication-Ready Scientific Suite</span>
+        <span class="hero-pill-badge">🎓 5th Sem Capstone Project & IEEE Studio</span>
+    </div>
+    <h1>🔬 Research Paper Co-Pilot AI</h1>
+    <p>Verifiable Multimodal Scientific AI Platform for Multi-Paper Comparative Synthesis & Camera-Ready IEEE Manuscripts</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -414,7 +505,6 @@ with tabs[0]:
 
         with st.chat_message("assistant"):
             with st.spinner(f"Retrieving passages across {len(target_papers)} paper(s)..."):
-                # Retrieve top chunks for each target paper
                 retrieved_chunks = []
                 for p_target in target_papers:
                     retrieved_chunks.extend(hybrid_retriever.retrieve(
@@ -628,3 +718,23 @@ with tabs[5]:
             st.download_button("📥 Download Markdown Draft (.md)", data=full_md, file_name="IEEE_Comparative_Manuscript.md", mime="text/markdown", use_container_width=True)
         with col_d2:
             st.download_button("📥 Download Overleaf LaTeX (.tex)", data=a6.get("latex_source", ""), file_name="IEEE_Comparative_Manuscript.tex", mime="text/x-tex", use_container_width=True)
+
+# ==========================================================================
+# MODERN PRODUCT FOOTER
+# ==========================================================================
+st.markdown("""
+<div class="app-footer-container">
+    <div class="footer-brand">🔬 Research Paper Co-Pilot AI</div>
+    <div class="footer-sub">Verifiable Multi-Paper Scientific AI Platform & Multi-Agent IEEE Conference Studio</div>
+    <div class="footer-pills">
+        <span class="footer-pill-item">🛡️ Verifiable Citation Grounding</span>
+        <span class="footer-pill-item">⚡ Cross-Paper Contradiction Engine</span>
+        <span class="footer-pill-item">📐 Quantitative & Formula Extractor</span>
+        <span class="footer-pill-item">✍️ Overleaf IEEEtran LaTeX Compatible</span>
+        <span class="footer-pill-item">🎓 5th Sem Capstone Project</span>
+    </div>
+    <div class="footer-copy">
+        © 2026 Research Co-Pilot AI • IEEE Author Center Standards Compliant • Built for Academic Rigor & Publication Excellence
+    </div>
+</div>
+""", unsafe_allow_html=True)
