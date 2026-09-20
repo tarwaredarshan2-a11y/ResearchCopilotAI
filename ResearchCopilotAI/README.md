@@ -10,11 +10,10 @@
 
 ---
 
-## 📌 1. Project Overview & Academic Scope
+## 📌 1. Project Overview & Academic Abstract
 
-**ResearchX — Multi-Agent Research Intelligence** is a human-in-the-loop research assistant and publication helper developed for 5th-semester engineering capstone evaluation and academic literature analysis.
-
-The system assists researchers in ingesting, comparing, and synthesizing academic PDF documents. It addresses key challenges in automated literature review—such as ungrounded statements, vague citation attributions, and manual synthesis bottlenecks—by combining **layout-aware PDF text and metadata extraction (`PyMuPDF`)**, **hybrid dense-sparse retrieval (Dense ChromaDB + Custom Lexical BM25)**, **page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
+### 📄 IEEE Paper Abstract
+> **Abstract**—Manual literature synthesis is labor-intensive and time-consuming, particularly when researchers need to analyze multiple papers, trace claims to their sources, and identify possible research gaps. This paper presents **ResearchX — Multi-Agent Research Intelligence**, a human-in-the-loop research assistant designed to support comparative analysis and literature synthesis across academic PDF documents. ResearchX processes research papers using PyMuPDF and combines dense vector retrieval with BM25-based lexical retrieval through Reciprocal Rank Fusion (RRF) to retrieve relevant passages. The retrieved information is processed through a coordinated six-agent pipeline covering query decomposition, literature retrieval, evidence and citation verification, LLM-assisted claim verification, research-gap synthesis, and IEEE section and LaTeX drafting. The system also supports cross-paper conflict detection, quantitative formula extraction, literature comparison, and page-level citation grounding. ResearchX is designed to assist researchers while keeping final interpretation and research decisions under human control. An evaluation methodology covering retrieval quality, citation grounding, claim verification, and query latency is outlined to assess the system against different retrieval and pipeline configurations.
 
 ---
 
