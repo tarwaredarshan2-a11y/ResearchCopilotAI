@@ -1,4 +1,4 @@
-﻿"""
+"""
 config.py
 ---------
 Central configuration module for ResearchCopilot AI (6-Agent Verifiable Multimodal Research Co-Pilot).
@@ -125,5 +125,7 @@ IEEE_SECTIONS = [
 # --------------------------------------------------------------------------
 # APP UI BRANDING
 # --------------------------------------------------------------------------
-APP_TITLE = "Research Paper Co-Pilot"
+APP_TITLE = "ResearchX — Multi-Agent Research Intelligence"
+APP_SUBTITLE = "Multi-Agent Research Intelligence & IEEE Conference Studio"
 APP_ICON = "🔬"
+

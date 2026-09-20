@@ -1,4 +1,4 @@
-# 🔬 Research Paper Co-Pilot AI
+# 🔬 ResearchX — Multi-Agent Research Intelligence
 
 > **Human-in-the-loop framework for evidence-grounded multi-paper literature analysis and IEEE-structured draft generation.**
 
@@ -12,7 +12,7 @@
 
 ## 📌 1. Project Overview & Academic Scope
 
-**Research Paper Co-Pilot AI** is a human-in-the-loop research assistant and publication helper developed for 5th-semester engineering capstone evaluation and academic literature analysis.
+**ResearchX — Multi-Agent Research Intelligence** is a human-in-the-loop research assistant and publication helper developed for 5th-semester engineering capstone evaluation and academic literature analysis.
 
 The system assists researchers in ingesting, comparing, and synthesizing academic PDF documents. It addresses key challenges in automated literature review—such as ungrounded statements, vague citation attributions, and manual synthesis bottlenecks—by combining **layout-aware PDF text and metadata extraction (`PyMuPDF`)**, **hybrid dense-sparse retrieval (Dense ChromaDB + Custom Lexical BM25)**, **page-level provenance grounding**, and a **coordinated 6-agent orchestration pipeline**.
 
@@ -210,4 +210,4 @@ ResearchCopilotAI/
 ## 📜 10. License & Academic Attribution
 
 This project is an academic capstone prototype. See the repository owner for usage and redistribution permissions.
-© 2026 Research Co-Pilot AI.
+© 2026 ResearchX — Multi-Agent Research Intelligence.

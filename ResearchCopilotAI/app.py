@@ -547,8 +547,8 @@ with st.sidebar:
     st.markdown(
         f"""
         <div class="sidebar-brand">
-            <div class="sidebar-title">Research Co-Pilot</div>
-            <div class="sidebar-subtitle">A focused workspace for reading, comparing, and shaping research.</div>
+            <div class="sidebar-title">ResearchX</div>
+            <div class="sidebar-subtitle">Multi-Agent Research Intelligence</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -955,7 +955,7 @@ st.markdown("""
 <div class="app-footer-container">
     <div class="footer-row">
         <div>
-            <div class="footer-brand">Research Co-Pilot AI</div>
+            <div class="footer-brand">ResearchX — Multi-Agent Research Intelligence</div>
             <div class="footer-sub">Read clearly. Think deeply. Write confidently.</div>
         </div>
     </div>
